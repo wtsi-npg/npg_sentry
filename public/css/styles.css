@@ -1,0 +1,85 @@
+body {
+  font-size: 16px;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+button {
+  margin-top: 10%;
+  background: linear-gradient(to top right, #ccc, #eee);
+  border: 0px solid #777;
+  border-radius: 3px;
+  box-shadow: 2px 2px 2px #777;
+}
+
+button:active {
+  background: linear-gradient(to bottom right, #bbf, #88c);
+  box-shadow: none;
+  color: #fff;
+}
+
+table, th, td {
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 5px 20px;
+  text-align: left;
+}
+
+tr:nth-child(even) {
+  background: #DDD;
+}
+
+tr:nth-child(odd) {
+  background: #FFF;
+}
+
+.monospace {
+  font-family: monospace;
+}
+
+.floatright {
+  float: right;
+  margin-top: 2px;
+}
+
+.big-button {
+  font-size: 20px;
+}
+
+#page {
+  margin: auto;
+  width: 70%;
+  position: relative;
+}
+
+#token-table {
+  width: 100%;
+}
+
+#login-msg {
+  float: left;
+}
+
+#show-token-form-button {
+  margin-top: 25px;
+}
+
+#create-token-button {
+
+}
+
+#floating-div {
+  box-shadow: 1px 1px 3px #777;
+  position: absolute;
+  left: 30%;
+  top: 130px;
+  padding: 0px 10px;
+  border: 1px solid #777;
+  border-radius: 10px;
+  width: 40%;
+  height: 70px;
+  z-index: 1;
+  background-color: #fff;
+  visibility: hidden;
+}

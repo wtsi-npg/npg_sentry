@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Token Management</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+  <body>
+    <div id="page">
+
+      <div id="welcome">
+        <span>
+          <h3 id="login-msg">Logged in as <%= user %></h3>
+          <button type="button" class="floatright big-button" id="show-token-form-button" onclick="npgauth.showTokenCreationForm();">Create a new token</button>
+        </span>
+      </div>
+
+      <div id="floating-div">
+        <button type="button" class="floatright" onclick="npgauth.closeTokenCreationForm();">X</button>
+        <button type="button" class="big-button" id="create-token-button" onclick="npgauth.createTokenRequest();npgauth.closeTokenCreationForm();">Create Token</button>
+      </div>
+
+      <table id="token-table">
+        <colgroup>
+          <col style="width: 180px">
+          <col class="monospace">
+          <col style="width: 70px">
+          <col style="width: 70px">
+        </colgroup>
+        <tr id="table-headers">
+          <th>Username</th>
+          <th>Token</th>
+          <th>Status</th>
+          <th>Revoke</th>
+        </tr>
+<!-- TODO: Possibly we can move the rendering of the table to client via AJAX and just serve this as static html -->
+        <% docs.forEach(function(document) { %>
+        <tr>
+          <td><%= document.user %></td>
+          <td class="monospace"><%= document.token %></td>
+          <td><%= document.status %></td>
+          <!-- TODO: This should only be clickable if token is valid. You cannot revoke a token that has already been revoked -->
+          <td class="revoke-link" onclick="npgauth.revokeToken('<%= document.token %>');">Revoke</td>
+        </tr>
+        <% }); %>
+      </table>
+
+    </div>
+    <script type="application/javascript" src="script.js"></script>
+  </body>
+</html>

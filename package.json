@@ -1,0 +1,17 @@
+{
+  "name": "@aacn500/auth",
+  "version": "0.0.0",
+  "description": "Auth server for npg_ranger",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "@aacn500",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "mongodb": "^2.2.21"
+  }
+}
