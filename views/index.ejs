@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Token Management</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
   </head>
   <body>
     <div id="page">
@@ -25,8 +25,8 @@
         <colgroup>
           <col style="width: 180px">
           <col class="monospace">
-          <col style="width: 70px">
-          <col style="width: 70px">
+          <col style="width: 105px">
+          <col style="width: 100px">
         </colgroup>
         <tr id="table-headers">
           <th>Username</th>
@@ -39,14 +39,18 @@
         <tr>
           <td><%= document.user %></td>
           <td class="monospace"><%= document.token %></td>
-          <td><%= document.status %></td>
+          <td class="token-status"><%= document.status %></td>
           <!-- TODO: This should only be clickable if token is valid. You cannot revoke a token that has already been revoked -->
+          <% if (document.status === 'valid') { %>
           <td class="revoke-link" onclick="npgauth.revokeToken('<%= document.token %>');">Revoke</td>
+          <% } else { %>
+          <td class="revoke-link-disabled">Revoke</td>
+          <% } %>
         </tr>
         <% }); %>
       </table>
 
     </div>
-    <script type="application/javascript" src="script.js"></script>
+    <script type="application/javascript" src="js/script.js"></script>
   </body>
 </html>

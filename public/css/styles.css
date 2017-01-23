@@ -47,6 +47,19 @@ tr:nth-child(odd) {
   font-size: 20px;
 }
 
+.revoke-link {
+  text-decoration: underline;
+  color: #00f
+}
+
+.revoke-link:hover {
+  cursor: pointer;
+}
+
+.revoke-link-disabled {
+  color: #999;
+}
+
 #page {
   margin: auto;
   width: 70%;
