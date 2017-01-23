@@ -48,7 +48,7 @@
     addValueToRow(row, values.status, 'token-status');
     if (values.status === 'valid') {
       addValueToRow(row, 'Revoke', 'revoke-link')
-        .onclick = function(){npgauth.revokeToken(values.token);};
+        .onclick = function(){window.npgauth.revokeToken(values.token);};
     } else {
       addValueToRow(row, 'Revoke', 'revoke-link-disabled');
     }
@@ -65,7 +65,6 @@
   }
 
   exports.revokeToken = function (token) {
-    console.log('I want to revoke this token: ' + token);
     var httpRequest = new XMLHttpRequest();
 
     if (!httpRequest) {
