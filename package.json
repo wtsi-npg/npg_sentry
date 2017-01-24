@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "./node_modules/.bin/grunt minify && node app.js"
   },
   "author": "@aacn500",
   "license": "GPL-3.0",
@@ -21,6 +21,7 @@
     "grunt-contrib-jshint": "1.1.x",
     "grunt-contrib-uglify": "2.0.x",
     "grunt-eslint": "19.0.x",
+    "grunt-newer": "^1.2.0",
     "load-grunt-tasks": "3.5.x"
   }
 }

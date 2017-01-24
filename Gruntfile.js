@@ -37,7 +37,9 @@ module.exports = function(grunt) {
     }
   });
 
+  grunt.loadNpmTasks('grunt-newer');
+
   grunt.registerTask('default', ['lint']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('minify', ['uglify', 'cssmin']);
+  grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };

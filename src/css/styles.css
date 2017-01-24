@@ -86,10 +86,6 @@ tr:nth-child(odd) {
   margin-top: 25px;
 }
 
-#create-token-button {
-
-}
-
 #floating-div {
   box-shadow: 1px 1px 3px #777;
   position: absolute;
