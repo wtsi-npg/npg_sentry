@@ -1,0 +1,13 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 5
+  },
+  "env": {
+    "node": false,
+    "browser": true
+  },
+  "rules": {
+    "no-var": 0
+  }
+}
+

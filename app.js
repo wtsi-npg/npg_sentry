@@ -14,7 +14,7 @@ const model = require('./lib/model');
 
 const PORT = process.argv[2] || 8000;
 
-let app = express();
+const app = express();
 
 app.set('view engine', 'ejs');
 
@@ -61,7 +61,12 @@ app.use(function(req, res) {
     .render(path.join(__dirname, 'views', 'error'), {err: 'Not Found'});
 });
 
+// next is unused, but required for express to see this
+// as error-handling middleware
+// https://expressjs.com/en/4x/api.html#description
+/* eslint-disable no-unused-vars */
 app.use(function(err, req, res, next) {
+/* eslint-enable no-unused-vars */
   console.error(err.stack);
   res.status(500).send(err);
   //   .render(path.join(__dirname, 'views', 'error'), {err});

@@ -1,10 +1,41 @@
 (function() {
   'use strict';
 
-  // put functions in custom namespace
-  window.npgauth = {};
+  function addValueToRow(row, data, cls) {
+    var td = document.createElement('td');
+    if (cls) {
+      td.className = cls;
+    }
+    td.appendChild(document.createTextNode(data));
+    return row.appendChild(td);
+  }
 
-  var exports = window.npgauth;
+  function generateTokenRow(row, values) {
+    addValueToRow(row, values.user);
+    addValueToRow(row, values.token, 'monospace');
+    addValueToRow(row, values.status, 'token-status');
+    if (values.status === 'valid') {
+      addValueToRow(row, 'Revoke', 'revoke-link')
+        .onclick = function() {
+          window.npgauth.revokeToken(values.token);
+        };
+    } else {
+      addValueToRow(row, 'Revoke', 'revoke-link-disabled');
+    }
+    return row;
+  }
+
+  function isRequestOkAndJson(httpRequest) {
+    var isOk = httpRequest.status === 200;
+    var isJson = httpRequest.getResponseHeader('Content-Type')
+      .includes('application/json');
+    return isOk && isJson;
+  }
+
+
+
+  // put functions in custom namespace
+  var exports = window.npgauth = {};
 
   exports.showTokenCreationForm = function showTokenCreationForm() {
     document.getElementById('floating-div').style.visibility = 'visible';
@@ -16,7 +47,8 @@
 
   exports.createTokenRequest = function () {
     // adapted from
-    // https://developer.mozilla.org/en-US/docs/AJAX/Getting_Started#Step_3_%E2%80%93_A_Simple_Example
+    // https://developer.mozilla.org/en-US/docs/AJAX/Getting_Started#Step_3_
+    // %E2%80%93_A_Simple_Example
     var httpRequest = new XMLHttpRequest();
 
     if (!httpRequest) {
@@ -26,8 +58,8 @@
 
     httpRequest.onreadystatechange = function gotTokenCreationResponse() {
       if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        if (httpRequest.status === 200 && httpRequest.getResponseHeader('Content-Type').includes('application/json')) {
-          // TODO wrap in try/catch - if response is not valid JSON this will crash
+        if (isRequestOkAndJson(httpRequest)) {
+          // TODO wrap in try/catch - crashes if response is not valid JSON
           var response = JSON.parse(httpRequest.responseText);
           var tableHeaders = document.getElementById('table-headers');
           var row = generateTokenRow(document.createElement('tr'), response);
@@ -42,28 +74,6 @@
     httpRequest.send();
   };
 
-  function generateTokenRow(row, values) {
-    addValueToRow(row, values.user);
-    addValueToRow(row, values.token, 'monospace');
-    addValueToRow(row, values.status, 'token-status');
-    if (values.status === 'valid') {
-      addValueToRow(row, 'Revoke', 'revoke-link')
-        .onclick = function(){window.npgauth.revokeToken(values.token);};
-    } else {
-      addValueToRow(row, 'Revoke', 'revoke-link-disabled');
-    }
-    return row;
-  }
-
-
-  function addValueToRow(row, data, cls) {
-    var td = document.createElement('td');
-    if (cls)
-      td.className = cls;
-    td.appendChild(document.createTextNode(data));
-    return row.appendChild(td);
-  }
-
   exports.revokeToken = function (token) {
     var httpRequest = new XMLHttpRequest();
 
@@ -74,8 +84,7 @@
 
     var tdElements = document.getElementsByTagName('td');
     var tokenRow;
-    var i;
-    for (i = 0; i < tdElements.length; i++) {
+    for (var i = 0; i < tdElements.length; i++) {
       if (tdElements[i].textContent === token) {
         tokenRow = tdElements[i].parentNode;
         i = undefined;
@@ -85,7 +94,7 @@
 
     httpRequest.onreadystatechange = function gotTokenRevocationResponse() {
       if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        if (httpRequest.status === 200 && httpRequest.getResponseHeader('Content-Type').includes('application/json')) {
+        if (isRequestOkAndJson(httpRequest)) {
           // TODO wrap in try/catch as above TODO
           var response = JSON.parse(httpRequest.responseText);
           // TODO: remove children from tokenRow, then add new row.

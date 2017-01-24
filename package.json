@@ -10,9 +10,17 @@
   "author": "@aacn500",
   "license": "GPL-3.0",
   "dependencies": {
-    "body-parser": "^1.16.0",
-    "ejs": "^2.5.5",
-    "express": "^4.14.0",
-    "mongodb": "^2.2.21"
+    "body-parser": "1.16.x",
+    "ejs": "2.5.x",
+    "express": "4.14.x",
+    "mongodb": "2.2.x"
+  },
+  "devDependencies": {
+    "grunt": "1.0.x",
+    "grunt-contrib-cssmin": "1.0.x",
+    "grunt-contrib-jshint": "1.1.x",
+    "grunt-contrib-uglify": "2.0.x",
+    "grunt-eslint": "19.0.x",
+    "load-grunt-tasks": "3.5.x"
   }
 }
