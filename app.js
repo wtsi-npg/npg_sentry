@@ -20,27 +20,43 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.json());
 
-app.post('/createToken', function(req, res) {
+app.post('/createToken', function(req, res, next) {
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
-  // TODO Now check that the user authenticated with x-remote-user is allowed
-  // to create a token for this user
+  // TODO Now check that the user authenticated with x-remote-user
+  // is a known user
 
   model.createToken(user).then(function(response) {
     res.status(200).json(response);
-  });
+  }, next);
 });
 
 app.post('/revokeToken', function(req, res, next) {
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
   // TODO Check that the X-Remote-User owns this token, and can revoke it
-
-  let token = req.body.token;
+  let token;
+  try {
+    token = req.body.token;
+  } catch (e) {
+    next(e);
+  }
   model.revokeToken(user, token).then(function(row) {
     res.status(200).json(row);
-  }, function(reason) {
-    next(reason);
-  });
+  }, next);
+});
 
+app.post('/checkToken', function(req, res, next) {
+
+  console.log(req.body);
+  let token = req.body.token;
+  let groups = req.body.groups;
+
+  model.checkToken(groups, token).then(function(decision) {
+    if (decision === true) {
+      res.status(200).send();
+    } else {
+      res.status(403).send();
+    }
+  }, next);
 });
 
 app.use(express.static(path.join(__dirname, 'public'), {index: false}));
@@ -50,10 +66,7 @@ app.get('/', function(req, res, next) {
 
   model.listTokens(user).then(function(docs) {
     res.render(path.join(__dirname, 'views', 'index'), {docs, user});
-  }, function(reason) {
-    // Error occurred finding tokens and converting cursor to array
-    next(reason);
-  });
+  }, next);
 });
 
 app.use(function(req, res) {
@@ -68,7 +81,13 @@ app.use(function(req, res) {
 app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
   console.error(err.stack);
-  res.status(500).send(err);
+  let statusCode;
+  if (err instanceof model.DbError) {
+    statusCode = 400;
+  } else {
+    statusCode = 500;
+  }
+  res.status(statusCode).send(err);
   //   .render(path.join(__dirname, 'views', 'error'), {err});
 });
 
