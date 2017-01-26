@@ -27,8 +27,12 @@
     "no-useless-return": 2,
     "yoda": 2,
     "strict": 2,
+    "no-catch-shadow": 2,
+    "no-delete-var": 2,
     "no-shadow": 2,
+    "no-undef": 2,
     "no-undef-init": 2,
+    "no-unused-vars": 2,
     "no-use-before-define": 2,
     "array-bracket-spacing": 2,
     "brace-style": 2,
@@ -49,5 +53,8 @@
     "semi": 2,
     "semi-spacing": [2, {"before": false, "after": true}],
     "no-var": 2,
+  },
+  "globals": {
+    "Promise": true,
   }
 }
