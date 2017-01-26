@@ -32,12 +32,36 @@ module.exports = function(grunt) {
         'Gruntfile.js',
         'app.js',
         'lib/*.js',
-        'src/js/*.js'
+        'src/js/*.js',
+        'test/*.js'
       ]
+    },
+    jasmine_nodejs: {
+      options: {
+        specNameSuffix: 'spec.js',
+        useHelpers: false,
+        random: false,
+        defaultTimeout: 15000,
+        stopOnFailure: false,
+        traceFatal: 2,
+        reporters: {
+          console: {
+            colors: true,
+            cleanStack: 0,
+            verbosity: 4,
+            listStyle: 'indent',
+            activity: false
+          }
+        }
+      },
+      'server_tests': {
+        specs: ['test/*.js']
+      }
     }
   });
 
-  grunt.registerTask('default', ['lint']);
+  grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
+  grunt.registerTask('test', ['lint', 'jasmine_nodejs']);
   grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };
