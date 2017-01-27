@@ -213,5 +213,50 @@ describe('exported function', function() {
     });
   });
 
-  // TODO test checkTokens
+  it('checkToken', function(done) {
+    let user = 'user@example.com';
+    let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
+
+    let p_tokenCollection = p_db.then(function(db) {
+      return new Promise(function(resolve, reject) {
+        db.collection('tokens', function(err, collection) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(collection);
+          }
+        });
+      });
+    });
+
+    let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+      return collection.insertOne({user, token, status: 'valid'});
+    });
+
+    let p_userCollection = p_db.then(function(db) {
+      return new Promise(function(resolve, reject) {
+        db.collection('users', function(err, collection) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(collection);
+          }
+        });
+      });
+    });
+
+    let p_userInsertion = p_userCollection.then(function(collection) {
+      return collection.insertOne({user, groups: ['1', '2', '5']});
+    });
+
+    let p_result =
+      Promise.all([p_tokenInsertion, p_userInsertion]).then(function() {
+        return model.checkToken(['1', '5'], token);
+      });
+
+    p_result.then(function(result) {
+      expect(result).toBe(true);
+      done();
+    });
+  });
 });
