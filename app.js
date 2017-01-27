@@ -70,8 +70,10 @@ app.get('/', function(req, res, next) {
 });
 
 app.use(function(req, res) {
-  res.status(404)
-    .render(path.join(__dirname, 'views', 'error'), {err: 'Not Found'});
+  let statusCode = 404;
+  res.status(statusCode)
+    .render(path.join(__dirname, 'views', 'error'),
+      {err: 'Not Found', statusCode});
 });
 
 // next is unused, but required for express to see this

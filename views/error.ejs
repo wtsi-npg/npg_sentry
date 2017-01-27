@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.min.css">
+  </head>
+  <body>
+    <div id="page">
+      <h2><%= statusCode; %></h2>
+      <h4><%= err.toString(); %></h4>
+      <% if (err.stack) { %>
+      <%= '<p>' + err.stack.toString() + '</p>'; %>
+      <% } %>
+    </div>
+  </body>
+</html>
+
