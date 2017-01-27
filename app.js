@@ -16,6 +16,9 @@ const PORT = process.argv[2] || 8000;
 
 const app = express();
 
+const creation_msg = 'Created by owner via web interface';
+const revocation_msg = 'Revoked by owner via web interface';
+
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.json());
@@ -25,7 +28,7 @@ app.post('/createToken', function(req, res, next) {
   // TODO Now check that the user authenticated with x-remote-user
   // is a known user
 
-  model.createToken(user).then(function(response) {
+  model.createToken(user, creation_msg).then(function(response) {
     res.status(200).json(response);
   }, next);
 });
@@ -39,7 +42,7 @@ app.post('/revokeToken', function(req, res, next) {
   } catch (e) {
     next(e);
   }
-  model.revokeToken(user, token).then(function(row) {
+  model.revokeToken(user, token, revocation_msg).then(function(row) {
     res.status(200).json(row);
   }, next);
 });

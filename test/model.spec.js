@@ -2,6 +2,7 @@
 
 const child = require('child_process');
 
+const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
@@ -69,7 +70,7 @@ describe('exported function', function() {
     let user = 'user@example.com';
     let p_insert;
     function insert() {
-      p_insert = model.createToken(user);
+      p_insert = model.createToken(user, 'test creation');
     }
     expect(insert).not.toThrow();
 
@@ -116,6 +117,9 @@ describe('exported function', function() {
       expect(doc.user).toBe(user);
       expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
       expect(doc.status).toBe('valid');
+      expect(moment(doc.issueTime).isValid()).toBe(true);
+      expect(doc.creationReason).toBe('test creation');
+      expect(moment(doc.expiryTime).isValid()).toBe(true);
     });
 
     Promise.all([p_countExpectation, p_docExpectation]).then(done);
@@ -143,7 +147,7 @@ describe('exported function', function() {
     });
 
     let p_revoke = p_insertion.then(function() {
-      return model.revokeToken(user, token);
+      return model.revokeToken(user, token, 'Test revocation');
     });
 
     let p_cursor = p_revoke.then(function() {

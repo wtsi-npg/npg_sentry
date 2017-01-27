@@ -13,13 +13,13 @@
     "body-parser": "1.16.x",
     "ejs": "2.5.x",
     "express": "4.14.x",
+    "moment": "2.17.x",
     "mongodb": "2.2.x"
   },
   "devDependencies": {
     "fs-extra": "2.0.x",
     "grunt": "1.0.x",
     "grunt-contrib-cssmin": "1.0.x",
-    "grunt-contrib-jshint": "1.1.x",
     "grunt-contrib-uglify": "2.0.x",
     "grunt-eslint": "19.0.x",
     "grunt-jasmine-nodejs": "1.5.x",
