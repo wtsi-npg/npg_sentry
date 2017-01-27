@@ -4,5 +4,24 @@ node_js:
   - "4.7.2"
   - "6"
 
+env:
+  global:
+    - MONGODB_VERSION=3.2.4
+
+install:
+  - ./.travis/install.sh
+  - export PATH="/tmp/usr/bin:${PATH}"
+  - npm install -g npm@3.10.10
+  - npm install -g grunt-cli@1.2.0
+  - npm install
+
+before_script:
+  - node --version
+  - npm --version
+  - mongo --version
+
 script:
   - grunt -v
+
+after_script:
+  - cat /tmp/*/test_db.log

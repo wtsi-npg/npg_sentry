@@ -19,12 +19,14 @@ beforeAll(function(done) {
   tmpdir = tmpobj.name;
   let command =
     `mongod --port 27017 --fork --dbpath ${tmpdir} ` +
-    `--logpath ${tmpdir}/test_db.log`;
+    `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
   console.log(`\nStarting MongoDB daemon: ${command}`);
   let out = child.execSync(command);
   console.log(`MongoDB daemon started: ${out}`);
-  p_db = MongoClient.connect('mongodb://localhost:27017/test');
-  p_db.then(done);
+  setTimeout(function() {
+    p_db = MongoClient.connect('mongodb://localhost:27017/test');
+    p_db.then(done);
+  }, 2500);
 }, 25000);
 
 
