@@ -23,10 +23,9 @@ beforeAll(function(done) {
   console.log(`\nStarting MongoDB daemon: ${command}`);
   let out = child.execSync(command);
   console.log(`MongoDB daemon started: ${out}`);
-  setTimeout(function() {
-    p_db = MongoClient.connect('mongodb://localhost:27017/test');
-    p_db.then(done);
-  }, 2500);
+  child.execSync('./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p 27017');
+  p_db = MongoClient.connect('mongodb://localhost:27017/test');
+  p_db.then(done);
 }, 25000);
 
 
