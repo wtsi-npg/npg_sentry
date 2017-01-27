@@ -125,46 +125,82 @@ describe('exported function', function() {
     Promise.all([p_countExpectation, p_docExpectation]).then(done);
   });
 
+  describe('revokeToken', function() {
+    it('works on existing token', function(done) {
+      let user = 'user@example.com';
+      let token = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
-  it('revokeToken', function(done) {
-    let user = 'user@example.com';
-    let token = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-
-    let p_collection = p_db.then(function(db) {
-      return new Promise(function(resolve, reject) {
-        db.collection('tokens', function(err, collection) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(collection);
-          }
+      let p_collection = p_db.then(function(db) {
+        return new Promise(function(resolve, reject) {
+          db.collection('tokens', function(err, collection) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(collection);
+            }
+          });
         });
       });
-    });
 
-    let p_insertion = p_collection.then(function(collection) {
-      return collection.insertOne({user, token, status: 'valid'});
-    });
+      let p_insertion = p_collection.then(function(collection) {
+        return collection.insertOne({user, token, status: 'valid'});
+      });
 
-    let p_revoke = p_insertion.then(function() {
-      return model.revokeToken(user, token, 'Test revocation');
-    });
+      let p_revoke = p_insertion.then(function() {
+        return model.revokeToken(user, token, 'Test revocation');
+      });
 
-    let p_cursor = p_revoke.then(function() {
-      return p_collection.then(function(collection) {
-        return collection.find({token});
+      let p_cursor = p_revoke.then(function() {
+        return p_collection.then(function(collection) {
+          return collection.find({token});
+        });
+      });
+
+      let p_doc = p_cursor.then(function(cursor) {
+        return cursor.next();
+      });
+
+      p_doc.then(function(doc) {
+        expect(doc.user).toBe(user);
+        expect(doc.token).toBe(token);
+        expect(doc.status).toBe('revoked');
+        done();
       });
     });
 
-    let p_doc = p_cursor.then(function(cursor) {
-      return cursor.next();
-    });
+    it('fails when users do not match', function(done) {
+      let creatingUser = 'user@example.com';
+      let revokingUser = 'bad@example.com';
+      let token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
-    p_doc.then(function(doc) {
-      expect(doc.user).toBe(user);
-      expect(doc.token).toBe(token);
-      expect(doc.status).toBe('revoked');
-      done();
+      let p_collection = p_db.then(function(db) {
+        return new Promise(function(resolve, reject) {
+          db.collection('tokens', function(err, collection) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(collection);
+            }
+          });
+        });
+      });
+
+      let p_insertion = p_collection.then(function(collection) {
+        return collection.insertOne({creatingUser, token, status: 'valid'});
+      });
+
+      let p_revoke = p_insertion.then(function() {
+        return model.revokeToken(revokingUser, token, 'Test revocation');
+      });
+
+      p_revoke.then(function() {
+        // p_revoke should be rejected because users do not match
+        fail();
+      }, function(reason) {
+        expect(reason.message).toEqual('This user does not own this token');
+      })
+      .then(done);
+
     });
   });
 
