@@ -9,19 +9,33 @@ const config = require('./lib/config');
 let opts = config.provide(config.fromCommandLine);
 const logger = require('./lib/logger');
 
+const fs = require('fs');
+const https = require('https');
 const path = require('path');
 
 const bodyParser = require('body-parser');
 const express = require('express');
+const helmet = require('helmet');
 
 const model = require('./lib/model');
+
+const port = opts.get('port');
+
+const httpsopts = {
+  key: fs.readFileSync('./certs/priv.key'),
+  cert: fs.readFileSync('./certs/cert.pem')
+};
 
 const creation_msg = 'Created by owner via web interface';
 const revocation_msg = 'Revoked by owner via web interface';
 
-const port = opts.get('port');
-
 const app = express();
+const serv = https.createServer(httpsopts, app);
+
+app.use(helmet({
+  hsts: false
+}));
+
 app.set('view engine', 'ejs');
 
 app.use(logger.connectLogger(logger, { level: 'auto' }));
@@ -107,6 +121,5 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(port);
+serv.listen(port);
 logger.info(`express started on port ${port}`);
-
