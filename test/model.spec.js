@@ -28,6 +28,23 @@ function getCollection(collName) {
   };
 }
 
+function testInput(method) {
+  it('fails without arguments', function(done) {
+    let p_insert = method();
+    p_insert.catch(function(reason) {
+      expect(reason instanceof Error).toBe(true);
+      expect(reason.message).toBe(method.name + ': undefined argument(s)');
+      done();
+    });
+
+    p_insert.then(function() {
+      fail();
+      done();
+    });
+  });
+}
+
+
 beforeAll(function(done) {
   // setup a mongo instance
   tmpobj = tmp.dirSync({prefix: 'auth_test_'});
@@ -84,11 +101,7 @@ describe('exported function', function() {
 
     it('succeeds', function(done) {
       let user = 'user@example.com';
-      let p_insert;
-      function insert() {
-        p_insert = model.createToken(user, 'test creation');
-      }
-      expect(insert).not.toThrow();
+      let p_insert = model.createToken(user, 'test creation');
 
       let p_collection = p_db.then(getCollection('tokens'));
 
@@ -128,9 +141,15 @@ describe('exported function', function() {
         expect(moment(doc.expiryTime).isValid()).toBe(true);
       });
 
-      Promise.all([p_countExpectation, p_docExpectation]).then(done);
+      Promise.all([p_countExpectation, p_docExpectation])
+      .then(done)
+      .catch(function() {
+        fail();
+        done();
+      });
     });
 
+    testInput(model.createToken);
   });
 
 
@@ -168,6 +187,7 @@ describe('exported function', function() {
       });
     });
 
+    testInput(model.revokeToken);
 
     it('fails when users do not match', function(done) {
       let creatingUser = 'user@example.com';
@@ -265,6 +285,7 @@ describe('exported function', function() {
       });
     });
 
+    testInput(model.listTokens);
   });
 
 
@@ -273,6 +294,7 @@ describe('exported function', function() {
     it('succeeds', function(done) {
       let user = 'user@example.com';
       let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
+      let reqdGroups = ['1', '5'];
 
       let p_tokenCollection = p_db.then(getCollection('tokens'));
 
@@ -287,8 +309,9 @@ describe('exported function', function() {
       });
 
       let p_result =
-        Promise.all([p_tokenInsertion, p_userInsertion]).then(function() {
-          return model.checkToken(['1', '5'], token);
+        Promise.all([p_tokenInsertion, p_userInsertion])
+        .then(function() {
+          return model.checkToken(reqdGroups, token);
         });
 
       p_result.then(function(result) {
@@ -297,6 +320,7 @@ describe('exported function', function() {
       });
     });
 
+    testInput(model.checkToken);
   });
 
 });

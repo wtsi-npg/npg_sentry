@@ -25,8 +25,6 @@ app.use(bodyParser.json());
 
 app.post('/createToken', function(req, res, next) {
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
-  // TODO Now check that the user authenticated with x-remote-user
-  // is a known user
 
   model.createToken(user, creation_msg).then(function(response) {
     res.status(200).json(response);
@@ -35,13 +33,14 @@ app.post('/createToken', function(req, res, next) {
 
 app.post('/revokeToken', function(req, res, next) {
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
-  // TODO Check that the X-Remote-User owns this token, and can revoke it
   let token;
+
   try {
     token = req.body.token;
   } catch (e) {
     next(e);
   }
+
   model.revokeToken(user, token, revocation_msg).then(function(row) {
     res.status(200).json(row);
   }, next);
@@ -92,8 +91,8 @@ app.use(function(err, req, res, next) {
   } else {
     statusCode = 500;
   }
-  res.status(statusCode).send(err);
-  //   .render(path.join(__dirname, 'views', 'error'), {err});
+  res.status(statusCode)
+    .render(path.join(__dirname, 'views', 'error'), {err, statusCode});
 });
 
 app.listen(PORT);
