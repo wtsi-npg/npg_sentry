@@ -30,17 +30,12 @@ function getCollection(collName) {
 
 function testInput(method) {
   it('fails without arguments', function(done) {
-    let p_insert = method();
-    p_insert.catch(function(reason) {
+    method().then(function() {
+      fail();
+    }, function(reason) {
       expect(reason instanceof Error).toBe(true);
       expect(reason.message).toBe(method.name + ': undefined argument(s)');
-      done();
-    });
-
-    p_insert.then(function() {
-      fail();
-      done();
-    });
+    }).then(done);
   });
 }
 
@@ -142,11 +137,9 @@ describe('exported function', function() {
       });
 
       Promise.all([p_countExpectation, p_docExpectation])
-      .then(done)
       .catch(function() {
         fail();
-        done();
-      });
+      }).then(done);
     });
 
     testInput(model.createToken);
@@ -183,8 +176,9 @@ describe('exported function', function() {
         expect(doc.user).toBe(user);
         expect(doc.token).toBe(token);
         expect(doc.status).toBe('revoked');
-        done();
-      });
+      }, function(reason) {
+        fail(reason);
+      }).then(done);
     });
 
     testInput(model.revokeToken);
@@ -281,8 +275,26 @@ describe('exported function', function() {
           return row.status === 'valid';
         });
         expect(tokensValid).toBe(true);
-        done();
+      }, function(reason) {
+        fail(reason);
+      }).then(done);
+    });
+
+    it('succeeds despite no tokens', function(done) {
+      let user = 'user@example.com';
+
+      let p_collection = p_db.then(getCollection('tokens'));
+
+      let p_noTokens = p_collection.then(function() {
+        return model.listTokens(user);
       });
+
+      p_noTokens.then(function(tokens) {
+        expect(tokens instanceof Array).toBe(true);
+        expect(tokens.length).toBe(0);
+      }, function(reason) {
+        fail(reason);
+      }).then(done);
     });
 
     testInput(model.listTokens);
@@ -320,7 +332,61 @@ describe('exported function', function() {
       });
     });
 
+    it('successfully returns false', function(done) {
+      let user = 'user@example.com';
+      let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
+      let reqdGroups = ['1', '5'];
+
+      let p_tokenCollection = p_db.then(getCollection('tokens'));
+
+      let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+        return collection.insertOne({user, token, status: 'valid'});
+      });
+
+      let p_userCollection = p_db.then(getCollection('users'));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({user, groups: ['1', '2', '3']});
+      });
+
+      let p_result =
+        Promise.all([p_tokenInsertion, p_userInsertion])
+        .then(function() {
+          return model.checkToken(reqdGroups, token);
+        });
+
+      p_result.then(function(result) {
+        expect(result).toBe(false);
+        done();
+      });
+    });
+
     testInput(model.checkToken);
+
+    it('fails when token does not exist', function(done) {
+      let user = 'user@example.com';
+      let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
+      let reqdGroups = ['1', '5'];
+
+      let p_userCollection = p_db.then(getCollection('users'));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({user, groups: ['1', '2', '3']});
+      });
+
+      let p_result = p_userInsertion.then(function() {
+        return model.checkToken(reqdGroups, token);
+      });
+
+      p_result.then(function() {
+        fail();
+      }, function(reason) {
+        expect(reason instanceof model.DbError).toBe(true);
+        expect(reason.message).toBe(
+          'Unexpected number of documents containing this token'
+        );
+      }).then(done);
+    });
   });
 
 });
