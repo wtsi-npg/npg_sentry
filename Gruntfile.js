@@ -54,7 +54,7 @@ module.exports = function(grunt) {
           }
         }
       },
-      'server_tests': {
+      server_tests: {
         specs: ['test/*.js']
       }
     }
