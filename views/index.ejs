@@ -45,7 +45,6 @@
           <td><%= document.user %></td>
           <td class="monospace"><%= document.token %></td>
           <td class="token-status"><%= document.status %></td>
-          <!-- TODO: This should only be clickable if token is valid. You cannot revoke a token that has already been revoked -->
           <% if (document.status === 'valid') { %>
           <td class="revoke-link" onclick="npgauth.revokeToken('<%= document.token %>');">Revoke</td>
           <% } else { %>

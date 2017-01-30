@@ -97,7 +97,6 @@
         if (isRequestOkAndJson(httpRequest)) {
           // TODO wrap in try/catch as above TODO
           var response = JSON.parse(httpRequest.responseText);
-          // TODO: remove children from tokenRow, then add new row.
           tokenRow.innerHTML = '';
           tokenRow = generateTokenRow(tokenRow, response);
         } else {
