@@ -11,7 +11,8 @@
 
       <div id="welcome">
         <span>
-          <h3 id="login-msg">Logged in as <%= user %></h3>
+          <!-- TODO: ajax to find logged in user -->
+          <h3 id="login-msg"></h3>
           <button
             type="button"
             class="floatright big-button"
@@ -58,29 +59,13 @@
           <th>Status</th>
           <th>Revoke</th>
         </tr>
-<!-- TODO: Possibly we can move the rendering of the table to client
-  via AJAX and just serve this as static html -->
-        <% docs.forEach(function(document) { %>
-<!--        <tr>
-          <td><%= document.user %></td>
-          <td class="monospace"><%= document.token %></td>
-          <td><button class="cp-btn">Copy</button></td>
-          <td class="token-status"><%= document.status %></td>
-          <% if (document.status === 'valid') { %>
-          <td
-            class="revoke-link"
-            onclick="npgauth.revokeToken('<%= document.token %>');">
-              Revoke
-          </td>
-          <% } else { %>
-          <td class="revoke-link-disabled">Revoke</td>
-          <% } %>
-        </tr>
-        <% }); %> -->
       </table>
 
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
+    <script
+      type="application/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js">
+    </script>
     <script type="application/javascript" src="js/script.min.js"></script>
   </body>
 </html>

@@ -47,8 +47,6 @@ app.post('/revokeToken', function(req, res, next) {
 });
 
 app.post('/checkToken', function(req, res, next) {
-
-  console.log(req.body);
   let token = req.body.token;
   let groups = req.body.groups;
 
@@ -61,15 +59,15 @@ app.post('/checkToken', function(req, res, next) {
   }, next);
 });
 
-app.use(express.static(path.join(__dirname, 'public'), {index: false}));
-
-app.get('/', function(req, res, next) {
-  let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
+app.get('/listTokens', function(req, res, next) {
+  let user = 'an8@sanger.ac.uk';
 
   model.listTokens(user).then(function(docs) {
-    res.render(path.join(__dirname, 'views', 'index'), {docs, user});
+    res.status(200).json(docs);
   }, next);
 });
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res) {
   let statusCode = 404;
@@ -78,8 +76,9 @@ app.use(function(req, res) {
       {err: 'Not Found', statusCode});
 });
 
-// next is unused, but required for express to see this
+// 'next' is unused, but required for express to see this
 // as error-handling middleware
+//
 // https://expressjs.com/en/4x/api.html#description
 /* eslint-disable no-unused-vars */
 app.use(function(err, req, res, next) {

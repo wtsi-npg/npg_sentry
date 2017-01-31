@@ -20,6 +20,7 @@
     cpBtn.appendChild(document.createTextNode('Copy'));
     cpBtnCell.appendChild(cpBtn);
     row.appendChild(cpBtnCell);
+
     addValueToRow(row, values.status, 'token-status');
     if (values.status === 'valid') {
       addValueToRow(row, 'Revoke', 'revoke-link')
@@ -38,7 +39,6 @@
       .includes('application/json');
     return isOk && isJson;
   }
-
 
 
   // put functions in custom namespace
@@ -122,6 +122,30 @@
       return trigger.parentNode.previousElementSibling;
     }
   });
+
+  window.onload = function onLoad() {
+    var httpRequest = new XMLHttpRequest();
+    if (!httpRequest) {
+      window.alert('Couldn\'t create AJAX request');
+      return false;
+    }
+    httpRequest.onreadystatechange = function gotTokenList() {
+      if (httpRequest.readyState === XMLHttpRequest.DONE) {
+        if (isRequestOkAndJson(httpRequest)) {
+          var response = JSON.parse(httpRequest.responseText);
+          var table = document.getElementById('token-table');
+          response.forEach(function(doc) {
+            var row = document.createElement('tr');
+            row = generateTokenRow(row, doc);
+            table.appendChild(row);
+          });
+        }
+      }
+    };
+
+    httpRequest.open('GET', '/listTokens');
+    httpRequest.send();
+  };
 
   //clipboard.on('success', function(event) {
   //  console.log(event.trigger.parentNode.previousElementSibling);
