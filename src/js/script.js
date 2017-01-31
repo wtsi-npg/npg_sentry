@@ -1,120 +1,59 @@
 (function() {
   'use strict';
 
-  function addValueToRow(row, data, cls) {
-    var td = document.createElement('td');
+  function addValueToRow($row, data, cls) {
+    var $td = $('<td></td>');
     if (cls) {
-      td.className = cls;
+      $td.addClass(cls);
     }
-    td.appendChild(document.createTextNode(data));
-    return row.appendChild(td);
+    $td.text(data);
+    $row.append($td);
+    return $td;
   }
 
-  function generateTokenRow(row, values) {
-    addValueToRow(row, values.user);
-    addValueToRow(row, values.token, 'monospace');
+  function generateTokenRow($row, values) {
+    addValueToRow($row, values.user);
+    addValueToRow($row, values.token, 'monospace');
 
-    var cpBtnCell = document.createElement('td');
-    var cpBtn = document.createElement('button');
-    cpBtn.className = 'cp-btn';
-    cpBtn.appendChild(document.createTextNode('Copy'));
-    cpBtnCell.appendChild(cpBtn);
-    row.appendChild(cpBtnCell);
+    var $cpBtnCell = $('<td></td>');
+    var $cpBtn = $('<button></button>');
+    $cpBtn.addClass('cp-btn');
+    $cpBtn.text('Copy');
+    $cpBtnCell.append($cpBtn);
+    $row.append($cpBtnCell);
 
-    addValueToRow(row, values.status, 'token-status');
+    addValueToRow($row, values.status, 'token-status');
     if (values.status === 'valid') {
-      addValueToRow(row, 'Revoke', 'revoke-link')
-        .onclick = function() {
-          window.npgauth.revokeToken(values.token);
-        };
+      addValueToRow($row, 'Revoke', 'revoke-link')
+        .on('click', function(e) {
+          /* eslint-disable no-use-before-define */
+          revokeToken(values.token, e.target);
+          /* eslint-enable no-use-before-define */
+        });
     } else {
-      addValueToRow(row, 'Revoke', 'revoke-link-disabled');
+      addValueToRow($row, 'Revoke', 'revoke-link-disabled');
     }
-    return row;
+    return $row;
   }
 
-  function isRequestOkAndJson(httpRequest) {
-    var isOk = httpRequest.status === 200;
-    var isJson = httpRequest.getResponseHeader('Content-Type')
-      .includes('application/json');
-    return isOk && isJson;
-  }
-
-
-  // put functions in custom namespace
-  var exports = window.npgauth = {};
-
-  exports.showTokenCreationForm = function showTokenCreationForm() {
-    document.getElementById('floating-div').style.visibility = 'visible';
-  };
-
-  exports.closeTokenCreationForm = function closeTokenCreationForm() {
-    document.getElementById('floating-div').style.visibility = 'hidden';
-  };
-
-  exports.createTokenRequest = function createTokenRequest() {
-    // adapted from
-    // https://developer.mozilla.org/en-US/docs/AJAX/Getting_Started#Step_3_
-    // %E2%80%93_A_Simple_Example
-    var httpRequest = new XMLHttpRequest();
-
-    if (!httpRequest) {
-      window.alert('Couldn\'t create an AJAX request!!');
-      return false;
-    }
-
-    httpRequest.onreadystatechange = function gotTokenCreationResponse() {
-      if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        if (isRequestOkAndJson(httpRequest)) {
-          // TODO wrap in try/catch - crashes if response is not valid JSON
-          var response = JSON.parse(httpRequest.responseText);
-          var tableHeaders = document.getElementById('table-headers');
-          var row = generateTokenRow(document.createElement('tr'), response);
-          tableHeaders.parentNode.insertBefore(row, tableHeaders.nextSibling);
-        } else {
-          window.alert('Failed to enter data to db?!?');
-        }
+  function revokeToken(token, target) {
+    var revokeSuccess = function(data, status) {
+      if (status === 'success') {
+        var $tr = $(target).parent();
+        $tr.empty();
+        $tr = generateTokenRow($tr, data);
+      } else {
+        window.alert('failed to revoke token');
       }
     };
 
-    httpRequest.open('POST', '/createToken');
-    httpRequest.send();
-  };
-
-  exports.revokeToken = function revokeToken(token) {
-    var httpRequest = new XMLHttpRequest();
-
-    if (!httpRequest) {
-      window.alert('Couldn\'t create an AJAX request!!');
-      return false;
-    }
-
-    var tdElements = document.getElementsByTagName('td');
-    var tokenRow;
-    for (var i = 0; i < tdElements.length; i++) {
-      if (tdElements[i].textContent === token) {
-        tokenRow = tdElements[i].parentNode;
-        i = undefined;
-        break;
-      }
-    }
-
-    httpRequest.onreadystatechange = function gotTokenRevocationResponse() {
-      if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        if (isRequestOkAndJson(httpRequest)) {
-          // TODO wrap in try/catch as above TODO
-          var response = JSON.parse(httpRequest.responseText);
-          tokenRow.innerHTML = '';
-          tokenRow = generateTokenRow(tokenRow, response);
-        } else {
-          window.alert('Failed to revoke token');
-        }
-      }
-    };
-
-    httpRequest.open('POST', '/revokeToken');
-    httpRequest.setRequestHeader('Content-Type', 'application/json');
-    httpRequest.send('{"token": "' + token + '"}');
+    $.post({
+      url: '/revokeToken',
+      data: JSON.stringify({token: token}),
+      success: revokeSuccess,
+      contentType: 'application/json',
+      dataType: 'json'
+    });
   };
 
   new window.Clipboard('.cp-btn', {
@@ -123,31 +62,41 @@
     }
   });
 
-  window.onload = function onLoad() {
-    var httpRequest = new XMLHttpRequest();
-    if (!httpRequest) {
-      window.alert('Couldn\'t create AJAX request');
-      return false;
-    }
-    httpRequest.onreadystatechange = function gotTokenList() {
-      if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        if (isRequestOkAndJson(httpRequest)) {
-          var response = JSON.parse(httpRequest.responseText);
-          var table = document.getElementById('token-table');
-          response.forEach(function(doc) {
-            var row = document.createElement('tr');
-            row = generateTokenRow(row, doc);
-            table.appendChild(row);
-          });
+  $(document).ready(function() {
+    var $floatdiv = $('#floating-div');
+    $('#show-token-form-button').on('click', function() {
+      $floatdiv.toggle();
+    });
+    $('#close-token-form-button').on('click', function() {
+      $floatdiv.toggle();
+    });
+    $('#create-token-button').on('click', function() {
+      $floatdiv.toggle();
+    });
+
+    $('#create-token-button').on('click', function() {
+      $.post('/createToken', function(data, status) {
+        if (status === 'success') {
+          var $th = $('#table-headers');
+          var $row = generateTokenRow($('<tr></tr>'), data);
+          $th.after($row);
+        } else {
+          window.alert('failed to enter data into db');
         }
+      });
+    });
+
+    $.get('/listTokens', function(data, status) {
+      if (status === 'success') {
+        var $table = $('#token-table');
+        data.forEach(function(doc) {
+          var $row = $('<tr></tr>');
+          $row = generateTokenRow($row, doc);
+          $table.append($row);
+        });
       }
-    };
+    });
 
-    httpRequest.open('GET', '/listTokens');
-    httpRequest.send();
-  };
+  });
 
-  //clipboard.on('success', function(event) {
-  //  console.log(event.trigger.parentNode.previousElementSibling);
-  //});
 }());

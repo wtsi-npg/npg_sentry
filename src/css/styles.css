@@ -98,5 +98,5 @@ tr:nth-child(odd) {
   height: 70px;
   z-index: 1;
   background-color: #fff;
-  visibility: hidden;
+  display: none;
 }
