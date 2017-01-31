@@ -13,6 +13,13 @@
   function generateTokenRow(row, values) {
     addValueToRow(row, values.user);
     addValueToRow(row, values.token, 'monospace');
+
+    var cpBtnCell = document.createElement('td');
+    var cpBtn = document.createElement('button');
+    cpBtn.className = 'cp-btn';
+    cpBtn.appendChild(document.createTextNode('Copy'));
+    cpBtnCell.appendChild(cpBtn);
+    row.appendChild(cpBtnCell);
     addValueToRow(row, values.status, 'token-status');
     if (values.status === 'valid') {
       addValueToRow(row, 'Revoke', 'revoke-link')
@@ -41,18 +48,18 @@
     document.getElementById('floating-div').style.visibility = 'visible';
   };
 
-  exports.closeTokenCreationForm = function () {
+  exports.closeTokenCreationForm = function closeTokenCreationForm() {
     document.getElementById('floating-div').style.visibility = 'hidden';
   };
 
-  exports.createTokenRequest = function () {
+  exports.createTokenRequest = function createTokenRequest() {
     // adapted from
     // https://developer.mozilla.org/en-US/docs/AJAX/Getting_Started#Step_3_
     // %E2%80%93_A_Simple_Example
     var httpRequest = new XMLHttpRequest();
 
     if (!httpRequest) {
-      window.alert('Couldn\'t create an AAJX request!!');
+      window.alert('Couldn\'t create an AJAX request!!');
       return false;
     }
 
@@ -74,7 +81,7 @@
     httpRequest.send();
   };
 
-  exports.revokeToken = function (token) {
+  exports.revokeToken = function revokeToken(token) {
     var httpRequest = new XMLHttpRequest();
 
     if (!httpRequest) {
@@ -109,4 +116,14 @@
     httpRequest.setRequestHeader('Content-Type', 'application/json');
     httpRequest.send('{"token": "' + token + '"}');
   };
+
+  new window.Clipboard('.cp-btn', {
+    target: function(trigger) {
+      return trigger.parentNode.previousElementSibling;
+    }
+  });
+
+  //clipboard.on('success', function(event) {
+  //  console.log(event.trigger.parentNode.previousElementSibling);
+  //});
 }());
