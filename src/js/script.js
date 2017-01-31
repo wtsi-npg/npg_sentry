@@ -12,18 +12,27 @@
   }
 
   function generateTokenRow($row, values) {
+    var valid = values.status === 'valid';
+    if (!valid) {
+      $row.addClass('disabled-row');
+    }
+
     addValueToRow($row, values.user);
     addValueToRow($row, values.token, 'monospace');
 
     var $cpBtnCell = $('<td></td>');
     var $cpBtn = $('<button></button>');
-    $cpBtn.addClass('cp-btn');
+    if (valid) {
+      $cpBtn.addClass('cp-btn');
+    } else {
+      $cpBtn.addClass('disabled-btn');
+    }
     $cpBtn.text('Copy');
     $cpBtnCell.append($cpBtn);
     $row.append($cpBtnCell);
 
     addValueToRow($row, values.status, 'token-status');
-    if (values.status === 'valid') {
+    if (valid) {
       addValueToRow($row, 'Revoke', 'revoke-link')
         .on('click', function(e) {
           /* eslint-disable no-use-before-define */
@@ -31,7 +40,7 @@
           /* eslint-enable no-use-before-define */
         });
     } else {
-      addValueToRow($row, 'Revoke', 'revoke-link-disabled');
+      addValueToRow($row, 'Revoke');
     }
     return $row;
   }

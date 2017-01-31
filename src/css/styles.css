@@ -3,22 +3,27 @@ body {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
-button {
+button.disabled-btn {
+  cursor: not-allowed;
+}
+
+button, button.disabled-btn:active {
   margin-top: 10%;
   background: linear-gradient(to top right, #ccc, #eee);
   border: 1px solid #777;
   border-radius: 3px;
   box-shadow: 2px 2px 2px #777;
+  color: #000;
+}
+
+button {
+  cursor: pointer;
 }
 
 button:active {
   background: linear-gradient(to bottom right, #bbf, #88c);
   box-shadow: none;
   color: #fff;
-}
-
-button:hover {
-  cursor: pointer;
 }
 
 table, th, td {
@@ -55,6 +60,10 @@ tr:nth-child(odd) {
   font-size: 20px;
 }
 
+.disabled-row {
+  opacity: 0.65;
+}
+
 .revoke-link {
   text-decoration: underline;
   color: #00f
@@ -62,10 +71,6 @@ tr:nth-child(odd) {
 
 .revoke-link:hover {
   cursor: pointer;
-}
-
-.revoke-link-disabled {
-  color: #999;
 }
 
 #page {
