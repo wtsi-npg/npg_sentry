@@ -24,6 +24,10 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.json());
 
 app.post('/createToken', function(req, res, next) {
+  // Does not expect any request body.
+  // Generates a random 32 character string and enters it
+  // into the db.
+  // Returns the new document as an application/json body.
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
 
   model.createToken(user, creation_msg).then(function(response) {
@@ -32,6 +36,10 @@ app.post('/createToken', function(req, res, next) {
 });
 
 app.post('/revokeToken', function(req, res, next) {
+  // Expects body of application/json containing only the token
+  // which is to be rejected. Updates the document in db so that
+  // the 'status' field is set to 'revoked'.
+  // Returns the updated document in  an application/json body.
   let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
   let token;
 
@@ -47,19 +55,22 @@ app.post('/revokeToken', function(req, res, next) {
 });
 
 app.post('/checkToken', function(req, res, next) {
+  // Expects application/json request body to include a token and
+  // an array of group ids. Finds the user owning that token from db,
+  // then finds the groups that user is a member of.
+  // Returns {ok: true} if user's group membership is a superset of
+  // groups specified in request body.
   let token = req.body.token;
   let groups = req.body.groups;
 
   model.checkToken(groups, token).then(function(decision) {
-    if (decision === true) {
-      res.status(200).send();
-    } else {
-      res.status(403).send();
-    }
+    res.status(200).json({ok: decision});
   }, next);
 });
 
 app.get('/listTokens', function(req, res, next) {
+  // Returns all documents in db where user matches the
+  // X-Remote-User header as an application/json array.
   let user = 'an8@sanger.ac.uk';
 
   model.listTokens(user).then(function(docs) {
@@ -84,14 +95,11 @@ app.use(function(req, res) {
 app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
   console.error(err.stack);
-  let statusCode;
-  if (err instanceof model.DbError) {
-    statusCode = 400;
-  } else {
-    statusCode = 500;
-  }
-  res.status(statusCode)
-    .render(path.join(__dirname, 'views', 'error'), {err, statusCode});
+  let statusCode = 500;
+  res.status(statusCode).json({
+    status: statusCode,
+    err: 'Internal server error'
+  });
 });
 
 app.listen(PORT);

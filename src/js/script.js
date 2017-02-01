@@ -65,7 +65,7 @@
     });
   };
 
-  new window.Clipboard('.cp-btn', {
+  new Clipboard('.cp-btn', {
     target: function(trigger) {
       return trigger.parentNode.previousElementSibling;
     }
