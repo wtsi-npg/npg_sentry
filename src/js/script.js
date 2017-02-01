@@ -1,4 +1,4 @@
-(function() {
+$(document).ready(function() {
   'use strict';
 
   function addValueToRow($row, data, cls) {
@@ -65,47 +65,65 @@
     });
   };
 
+  function parseQuery(url) {
+    var query = {};
+    var queryarr = url.replace(/^.*\?/, '').split(/[&;]/g);
+
+    queryarr.forEach(function(element) {
+      var kv = element.split('=');
+      if (query[kv[0]] === undefined) {
+        query[kv[0]] = kv[1] === undefined ? true : kv[1];
+      } else {
+        query[kv[0]] = [query[kv[0]], kv[1]];
+      }
+    });
+
+    return query;
+  }
+
+  var $floatdiv = $('#floating-div');
+  $('#show-token-form-button').on('click', function() {
+    $floatdiv.toggle();
+  });
+  $('#close-token-form-button').on('click', function() {
+    $floatdiv.toggle();
+  });
+  $('#create-token-button').on('click', function() {
+    $floatdiv.toggle();
+  });
+
+  $('#create-token-button').on('click', function() {
+    $.post('/createToken', function(data, status) {
+      if (status === 'success') {
+        var $th = $('#table-headers');
+        var $row = generateTokenRow($('<tr></tr>'), data);
+        $th.after($row);
+      } else {
+        window.alert('failed to enter data into db');
+      }
+    });
+  });
+
+  $.get('/listTokens', function(data, status) {
+    if (status === 'success') {
+      var $table = $('#token-table');
+      data.forEach(function(doc) {
+        var $row = $('<tr></tr>');
+        $row = generateTokenRow($row, doc);
+        $table.append($row);
+      });
+    }
+  });
+
   new Clipboard('.cp-btn', {
     target: function(trigger) {
       return trigger.parentNode.previousElementSibling;
     }
   });
 
-  $(document).ready(function() {
-    var $floatdiv = $('#floating-div');
-    $('#show-token-form-button').on('click', function() {
-      $floatdiv.toggle();
-    });
-    $('#close-token-form-button').on('click', function() {
-      $floatdiv.toggle();
-    });
-    $('#create-token-button').on('click', function() {
-      $floatdiv.toggle();
-    });
-
-    $('#create-token-button').on('click', function() {
-      $.post('/createToken', function(data, status) {
-        if (status === 'success') {
-          var $th = $('#table-headers');
-          var $row = generateTokenRow($('<tr></tr>'), data);
-          $th.after($row);
-        } else {
-          window.alert('failed to enter data into db');
-        }
-      });
-    });
-
-    $.get('/listTokens', function(data, status) {
-      if (status === 'success') {
-        var $table = $('#token-table');
-        data.forEach(function(doc) {
-          var $row = $('<tr></tr>');
-          $row = generateTokenRow($row, doc);
-          $table.append($row);
-        });
-      }
-    });
-
-  });
+  var query = parseQuery($(location).attr('href'));
+  if (query.create) {
+    $floatdiv.toggle();
+  }
 
 }());
