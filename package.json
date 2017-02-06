@@ -1,6 +1,6 @@
 {
   "name": "@aacn500/auth",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Auth server for npg_ranger",
   "main": "app.js",
   "scripts": {
