@@ -1,0 +1,26 @@
+{
+  "name": "@aacn500/auth",
+  "description": "Auth server for npg_ranger",
+  "main": "app.js",
+  "authors": [
+    "@aacn500"
+  ],
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/aacn500/auth",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "3.1.1",
+    "requirejs": "2.3.2",
+    "clipboard": "1.5.16"
+  },
+  "devDependencies": {
+    "qunit": "2.1.1"
+  }
+}

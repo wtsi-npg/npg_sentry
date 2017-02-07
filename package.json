@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "grunt test",
-    "start": "grunt minify && node app.js"
+    "start": "node app.js"
   },
   "author": "@aacn500",
   "license": "GPL-3.0",
