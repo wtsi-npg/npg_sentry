@@ -21,7 +21,7 @@ before_script:
   - mongo --version
 
 script:
-  - grunt -v
+  - grunt -v && node-qunit-phantomjs test/client/test.html
 
 after_script:
   - cat /tmp/*/test_db.log
