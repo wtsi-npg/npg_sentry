@@ -3,15 +3,15 @@
 requirejs.config({
   baseUrl: '../../public/js',
   paths: {
-    //qunit: 'bower_components/qunit/qunit/qunit',
+    'qunit': 'bower_components/qunit/qunit/qunit',
     jquery: 'bower_components/jquery/dist/jquery',
     clipboard: 'bower_components/clipboard/dist/clipboard'
   },
 });
 
-QUnit.config.autostart = false;
-
-requirejs(['jquery', 'auth'], function($, auth) {
+requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
+  QUnit.config.autostart = false;
+  
   function runTest() {
 
     QUnit.test('Can toggle token creation form visibility', function(assert) {
@@ -65,4 +65,3 @@ requirejs(['jquery', 'auth'], function($, auth) {
 
   $(document).ready(runTest);
 });
-
