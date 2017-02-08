@@ -36,6 +36,14 @@ module.exports = function(grunt) {
         'test/*.js'
       ]
     },
+    qunit: {
+      options: {
+        timeout: 5000,
+        console: true,
+        '--debug': true
+      },
+      all: ['test/client/test*.html']
+    },
     jasmine_nodejs: {
       options: {
         specNameSuffix: 'spec.js',
@@ -62,6 +70,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('test', ['lint', 'jasmine_nodejs']);
+  grunt.registerTask('test', ['lint', 'jasmine_nodejs', 'qunit']);
   grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };
