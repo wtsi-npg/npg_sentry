@@ -1,5 +1,3 @@
-'use strict';
-
 requirejs.config({
   baseUrl: '../../public/js',
   paths: {
@@ -10,8 +8,10 @@ requirejs.config({
 });
 
 requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
+  'use strict';
+
   QUnit.config.autostart = false;
-  
+
   function runTest() {
 
     QUnit.test('Can toggle token creation form visibility', function(assert) {

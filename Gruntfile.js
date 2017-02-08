@@ -32,8 +32,9 @@ module.exports = function(grunt) {
         'Gruntfile.js',
         'app.js',
         'lib/*.js',
-        'public/js/*[!.min].js',
-        'test/*.js'
+        'public/js/*.js',
+        'test/**/*.js',
+        '!**/*.min.js', // don't lint minified files
       ]
     },
     qunit: {
@@ -63,7 +64,7 @@ module.exports = function(grunt) {
         }
       },
       server_tests: {
-        specs: ['test/*.js']
+        specs: ['test/server/*.js']
       }
     }
   });
