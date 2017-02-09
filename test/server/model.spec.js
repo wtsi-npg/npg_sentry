@@ -15,7 +15,6 @@ let p_db;
 let tmpobj;
 let tmpdir;
 
-
 function getCollection(collName) {
   return function(db) {
     return new Promise(function(resolve, reject) {
@@ -92,7 +91,6 @@ describe('exported function', function() {
     child.execSync('mongo --eval "db.tokens.drop();db.users.drop();"');
   });
 
-
   describe('createToken', function() {
 
     it('succeeds', function(done) {
@@ -131,10 +129,11 @@ describe('exported function', function() {
       let p_docExpectation = p_doc.then(function(doc) {
         expect(doc.user).toBe(user);
         expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
-        expect(doc.status).toBe('valid');
+        expect(doc.status).toBe(model.TOKEN_STATUS_VALID);
         expect(moment(doc.issueTime).isValid()).toBe(true);
         expect(doc.creationReason).toBe('test creation');
         expect(moment(doc.expiryTime).isValid()).toBe(true);
+        // TODO missing test for duration
       });
 
       Promise.all([p_countExpectation, p_docExpectation])
@@ -176,7 +175,9 @@ describe('exported function', function() {
       let p_collection = p_db.then(getCollection('tokens'));
 
       let p_insertion = p_collection.then(function(collection) {
-        return collection.insertOne({user, token, status: 'valid'});
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_revoke = p_insertion.then(function() {
@@ -196,7 +197,7 @@ describe('exported function', function() {
       p_doc.then(function(doc) {
         expect(doc.user).toBe(user);
         expect(doc.token).toBe(token);
-        expect(doc.status).toBe('revoked');
+        expect(doc.status).toBe(model.TOKEN_STATUS_REVOKED);
       }, function(reason) {
         fail(reason);
       }).then(done);
@@ -242,7 +243,9 @@ describe('exported function', function() {
       let p_collection = p_db.then(getCollection('tokens'));
 
       let p_insertion = p_collection.then(function(collection) {
-        return collection.insertOne({creatingUser, token, status: 'valid'});
+        return collection.insertOne({
+          creatingUser, token, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_revoke = p_insertion.then(function() {
@@ -300,11 +303,15 @@ describe('exported function', function() {
       let p_collection = p_db.then(getCollection('tokens'));
 
       let p_insertion1 = p_collection.then(function(collection) {
-        return collection.insertOne({user, token: token1, status: 'valid'});
+        return collection.insertOne({
+          user, token: token1, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_insertion2 = p_collection.then(function(collection) {
-        return collection.insertOne({user, token: token2, status: 'valid'});
+        return collection.insertOne({
+          user, token: token2, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_tokens = Promise.all([p_insertion1, p_insertion2]).then(function() {
@@ -323,7 +330,7 @@ describe('exported function', function() {
         });
         expect(tokenUsers).toBe(true);
         let tokensValid = tokens.every(function(row) {
-          return row.status === 'valid';
+          return row.status === model.TOKEN_STATUS_VALID;
         });
         expect(tokensValid).toBe(true);
       }, function(reason) {
@@ -372,7 +379,9 @@ describe('exported function', function() {
       let p_tokenCollection = p_db.then(getCollection('tokens'));
 
       let p_tokenInsertion = p_tokenCollection.then(function(collection) {
-        return collection.insertOne({user, token, status: 'valid'});
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_userCollection = p_db.then(getCollection('users'));
@@ -401,7 +410,9 @@ describe('exported function', function() {
       let p_tokenCollection = p_db.then(getCollection('tokens'));
 
       let p_tokenInsertion = p_tokenCollection.then(function(collection) {
-        return collection.insertOne({user, token, status: 'valid'});
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_VALID
+        });
       });
 
       let p_userCollection = p_db.then(getCollection('users'));
