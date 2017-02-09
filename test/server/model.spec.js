@@ -7,6 +7,8 @@ const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
 
+const config = require('../../lib/config');
+config.provide(() => {return {mongourl: 'mongodb://localhost:27017/test'};});
 const model = require('../../lib/model');
 
 let p_db;
