@@ -39,7 +39,6 @@ function testInput(method) {
   });
 }
 
-
 beforeAll(function(done) {
   // setup a mongo instance
   tmpobj = tmp.dirSync({prefix: 'auth_test_'});
@@ -142,7 +141,27 @@ describe('exported function', function() {
       }).then(done);
     });
 
-    testInput(model.createToken);
+    it('rejects with invalid parameters', function(done) {
+      model.createToken().catch(function (reason) {
+        expect(reason).toMatch(/createToken: user is not defined/i);
+        done();
+      });
+
+      model.createToken(1).catch(function (reason) {
+        expect(reason).toMatch(/createToken: user must be a string/i);
+        done();
+      });
+
+      model.createToken('user').catch(function (reason) {
+        expect(reason).toMatch(/createToken: justification is not defined/i);
+        done();
+      });
+
+      model.createToken('user', 1).catch(function (reason) {
+        expect(reason).toMatch(/createToken: justification must be a string/i);
+        done();
+      });
+    });
   });
 
 
@@ -181,7 +200,37 @@ describe('exported function', function() {
       }).then(done);
     });
 
-    testInput(model.revokeToken);
+    it('rejects with invalid parameters', function(done) {
+      model.revokeToken().catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: user is not defined/i);
+        done();
+      });
+
+      model.revokeToken(1).catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: user must be a string/i);
+        done();
+      });
+
+      model.revokeToken('user').catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: token is not defined/i);
+        done();
+      });
+
+      model.revokeToken('user', 1).catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: token must be a string/i);
+        done();
+      });
+
+      model.revokeToken('user', 'token').catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: justification is not defined/i);
+        done();
+      });
+
+      model.revokeToken('user', 'token', 1).catch(function (reason) {
+        expect(reason).toMatch(/revokeToken: justification must be a string/i);
+        done();
+      });
+    });
 
     it('fails when users do not match', function(done) {
       let creatingUser = 'user@example.com';
@@ -297,7 +346,17 @@ describe('exported function', function() {
       }).then(done);
     });
 
-    testInput(model.listTokens);
+    it('rejects with invalid parameters', function(done) {
+      model.listTokens().catch(function (reason) {
+        expect(reason).toMatch(/listTokens: user is not defined/i);
+        done();
+      });
+
+      model.listTokens(1).catch(function (reason) {
+        expect(reason).toMatch(/listTokens: user must be a string/i);
+        done();
+      });
+    });
   });
 
 
