@@ -13,7 +13,9 @@ install:
   - export PATH="/tmp/usr/bin:${PATH}"
   - npm install -g npm@3.10.10
   - npm install -g grunt-cli@1.2.0
+  - npm install -g bower@1.8.0
   - npm install
+  - bower install
 
 before_script:
   - node --version

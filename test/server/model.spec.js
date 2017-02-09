@@ -7,7 +7,7 @@ const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
 
-const model = require('../lib/model');
+const model = require('../../lib/model');
 
 let p_db;
 let tmpobj;
