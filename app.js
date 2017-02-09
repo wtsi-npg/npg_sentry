@@ -5,6 +5,9 @@
 
 'use strict';
 
+const config = require('./lib/config');
+let opts = config.provide(config.fromCommandLine);
+
 const path = require('path');
 
 const bodyParser = require('body-parser');
@@ -12,13 +15,12 @@ const express = require('express');
 
 const model = require('./lib/model');
 
-const PORT = process.argv[2] || 8000;
-
-const app = express();
-
 const creation_msg = 'Created by owner via web interface';
 const revocation_msg = 'Revoked by owner via web interface';
 
+const port = opts.get('port');
+
+const app = express();
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.json());
@@ -102,6 +104,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(PORT);
-console.error(`express started on port ${PORT}`);
+app.listen(port);
+console.error(`express started on port ${port}`);
 
