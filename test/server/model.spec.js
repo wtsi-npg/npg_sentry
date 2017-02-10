@@ -312,7 +312,7 @@ describe('exported function', function() {
       p_doc.catch(function(reason) {
         expect(reason instanceof model.DbError).toBe(true);
         expect(reason.message).toBe(
-          'Unexpected number of documents containing this token'
+          model.ERROR_UNEXPECTED_NUM_DOCS
         );
         done();
       });
@@ -503,7 +503,7 @@ describe('exported function', function() {
       }, function(reason) {
         expect(reason instanceof model.DbError).toBe(true);
         expect(reason.message).toBe(
-          'Unexpected number of documents containing this token'
+          model.ERROR_UNEXPECTED_NUM_DOCS
         );
       }).then(done);
     });
