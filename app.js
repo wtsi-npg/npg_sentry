@@ -7,6 +7,7 @@
 
 const config = require('./lib/config');
 let opts = config.provide(config.fromCommandLine);
+const logger = require('./lib/logger');
 
 const path = require('path');
 
@@ -22,6 +23,8 @@ const port = opts.get('port');
 
 const app = express();
 app.set('view engine', 'ejs');
+
+app.use(logger.connectLogger(logger, { level: 'auto' }));
 
 app.use(bodyParser.json());
 
@@ -96,7 +99,7 @@ app.use(function(req, res) {
 /* eslint-disable no-unused-vars */
 app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
-  console.error(err.stack);
+  logger.error(err);
   let statusCode = 500;
   res.status(statusCode).json({
     status: statusCode,
@@ -105,5 +108,5 @@ app.use(function(err, req, res, next) {
 });
 
 app.listen(port);
-console.error(`express started on port ${port}`);
+logger.info(`express started on port ${port}`);
 
