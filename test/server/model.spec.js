@@ -284,7 +284,7 @@ describe('exported function', function() {
         // p_revoke should be rejected because users do not match
         fail();
       }, function(reason) {
-        expect(reason.message).toEqual('This user does not own this token');
+        expect(reason.message).toEqual(model.ERROR_USER_NOT_TOKEN_OWNER);
       })
       .then(done);
     });
