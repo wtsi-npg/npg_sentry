@@ -44,10 +44,10 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
           user: 'user@example.com'
         }
       ];
-      $.get = function mockAjax(url, cback) {
-        assert.strictEqual(url, '/listTokens',
+      $.get = function mockAjax(opts) {
+        assert.strictEqual(opts.url, '/listTokens',
           'Makes request to /listTokens');
-        cback(data, 'success');
+        opts.success(data, 'success');
         assert.strictEqual(
           $('#token-table').children('tbody').children('tr').length, 2,
           'Table is not empty after request to /listTokens'

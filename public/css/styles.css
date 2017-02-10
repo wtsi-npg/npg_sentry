@@ -64,6 +64,22 @@ tr:nth-child(odd) {
   opacity: 0.65;
 }
 
+.error-msg {
+  display: inline-block;
+  border: 2px solid red;
+  background-color: #fdd;
+  padding: 0px 8px;
+  margin: 5px;
+}
+
+.error-msg:hover {
+  cursor: pointer;
+}
+
+.error-div {
+  text-align: center;
+}
+
 .revoke-link {
   text-decoration: underline;
   color: #00f

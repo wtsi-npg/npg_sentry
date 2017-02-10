@@ -1,6 +1,18 @@
 define(['jquery', 'clipboard'], function($, Clipboard) {
   'use strict';
 
+  function showErrorMsg(content) {
+    var $div = $('<div></div>');
+    $div.addClass('error-div');
+    var $p = $('<p>' + content + '</p>');
+    $p.addClass('error-msg');
+    $p.on('click', function() {
+      $div.remove();
+    });
+    $div.append($p);
+    $('#error-container').append($div);
+  }
+
   function addValueToRow($row, data, cls) {
     var $td = $('<td></td>');
     if (cls) {
@@ -46,14 +58,10 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
   }
 
   function revokeToken(token, target) {
-    var revokeSuccess = function(data, status) {
-      if (status === 'success') {
-        var $tr = $(target).parent();
-        $tr.empty();
-        $tr = generateTokenRow($tr, data);
-      } else {
-        window.alert('failed to revoke token');
-      }
+    var revokeSuccess = function(data) {
+      var $tr = $(target).parent();
+      $tr.empty();
+      $tr = generateTokenRow($tr, data);
     };
 
     $.post({
@@ -61,7 +69,11 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       data: JSON.stringify({token: token}),
       success: revokeSuccess,
       contentType: 'application/json',
-      dataType: 'json'
+      dataType: 'json',
+      error: function(jqXHR) {
+        showErrorMsg(
+          'Error ' + jqXHR.status + ': Couldn\'t submit token revocation');
+      }
     });
   };
 
@@ -94,27 +106,36 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     });
 
     $('#create-token-button').on('click', function() {
-      $.post('/createToken', function(data, status) {
-        if (status === 'success') {
+      $.post({
+        url: '/createToken',
+        success: function(data) {
           var $th = $('#table-headers');
           var $row = generateTokenRow($('<tr></tr>'), data);
           $th.after($row);
-        } else {
-          window.alert('failed to enter data into db');
+        },
+        error: function(jqXHR) {
+          showErrorMsg(
+            'Error ' + jqXHR.status + ': Couldn\'t submit token request');
         }
       });
     });
 
-    $.get('/listTokens', function(data, status) {
-      if (status === 'success') {
+    $.get({
+      url: '/listTokens',
+      success: function(data) {
         var $table = $('#token-table');
         data.forEach(function(doc) {
           var $row = $('<tr></tr>');
           $row = generateTokenRow($row, doc);
           $table.append($row);
         });
+      },
+      error: function(jqXHR) {
+        showErrorMsg(
+          'Error ' + jqXHR.status + ': Couldn\'t list available tokens');
       }
     });
+
 
     new Clipboard('.cp-btn', {
       target: function(trigger) {
