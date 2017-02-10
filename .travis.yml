@@ -23,7 +23,7 @@ before_script:
   - mongo --version
 
 script:
-  - grunt -v
+  - if [ "${RUN_COVERAGE}" = "true" ]; then grunt -v test_coverage; else grunt -v; fi
 
 after_script:
   - cat /tmp/*/test_db.log
