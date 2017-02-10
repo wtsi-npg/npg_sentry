@@ -48,30 +48,22 @@ module.exports = function(grunt) {
       },
       all: ['test/client/test*.html']
     },
-    jasmine_nodejs: {
-      options: {
-        specNameSuffix: 'spec.js',
-        useHelpers: false,
-        random: false,
-        defaultTimeout: 15000,
-        stopOnFailure: false,
-        traceFatal: 2,
-        reporters: {
-          console: {
-            colors: true,
-            cleanStack: 0,
-            verbosity: 4,
-            listStyle: 'indent',
-            activity: false
-          }
-        }
-      },
-      server_tests: {
-        specs: ['test/server/*.js']
-      }
-    },
     jasmine_node: {
-      task_name: {
+      only_test: {
+        options: {
+          forceExit: true,
+          coverage: false,
+          jasmine: {
+            verbosity: 4,
+            spec_dir: 'test/server',
+            spec_files: [
+              '**/*spec.js'
+            ]
+          }
+        },
+        src: ['lib/**/*.js']
+      },
+      coverage: {
         options: {
           forceExit: true,
           coverage: {
@@ -92,7 +84,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('test', ['lint', 'jasmine_nodejs', 'qunit']);
-  grunt.registerTask('test_coverage', ['lint', 'clean:coverage', 'jasmine_node', 'qunit']);
+  grunt.registerTask('test', ['lint', 'jasmine_node:only_test', 'qunit']);
+  grunt.registerTask('test_coverage', ['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
   grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };
