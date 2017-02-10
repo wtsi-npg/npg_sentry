@@ -31,3 +31,33 @@ $ pm2 logs
 $ # monitor processes
 $ pm2 monit
 ```
+
+##Run tests
+
+```
+npm install -g grunt-cli
+cd auth
+```
+
+Run linter
+```
+grunt lint
+```
+
+Run tests
+```
+grunt test -v
+```
+
+Run tests and get coverage reports for server in `./coverage/`
+```
+grunt test_coverage
+```
+
+###Loadtesting
+
+```
+npm install -g artillery
+artillery run ./test/load/artillery.yml --target localhost:8000
+```
+
