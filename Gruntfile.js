@@ -40,6 +40,15 @@ module.exports = function(grunt) {
         '!**/*.min.js', // don't lint minified files
       ]
     },
+    jsonlint: {
+      pkg: {
+        src: [
+          'package.json',
+          'bower.json',
+          'lib/messages.json'
+        ]
+      }
+    },
     qunit: {
       options: {
         timeout: 5000,
@@ -84,7 +93,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('test', ['lint', 'jasmine_node:only_test', 'qunit']);
+  grunt.registerTask('test', ['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
   grunt.registerTask('test_coverage', ['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
   grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };
