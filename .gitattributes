@@ -1,0 +1,2 @@
+# Ignore wait-for-it.sh in github's language stats
+test/scripts/* linguist-vendored

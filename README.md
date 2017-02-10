@@ -17,3 +17,17 @@ Using npm:
 ```
 $ npm start
 ```
+OR use pm2 to run server as a daemonised cluster
+
+```
+$ npm i -g pm2
+$ pm2 start app.js -i <number of processes> -- <arguments to pass to server>
+$ # stop the server
+$ pm2 stop app
+$ # reload the server
+$ pm2 reload app
+$ # view recent logs, and follow new logs
+$ pm2 logs
+$ # monitor processes
+$ pm2 monit
+```
