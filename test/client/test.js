@@ -60,6 +60,22 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
       auth.setupPage();
       $.get = oldAjaxGet;
     });
+
+    QUnit.test('Show error message', function(assert) {
+      assert.expect(3);
+
+      assert.strictEqual(
+        $('#error-container').children().length, 0,
+        'Error container is empty at start');
+      auth.showErrorMsg('test error');
+      assert.strictEqual(
+        $('#error-container').children().length, 1,
+        'Error container has an error after showErrorMsg');
+      $('.error-msg').triggerHandler('click');
+      assert.strictEqual(
+        $('#error-container').children().length, 0,
+        'Error container is empty again after click event');
+    });
     QUnit.start();
   }
 

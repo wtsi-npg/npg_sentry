@@ -136,7 +136,6 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       }
     });
 
-
     new Clipboard('.cp-btn', {
       target: function(trigger) {
         return trigger.parentNode.previousElementSibling;
@@ -154,6 +153,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     generateTokenRow: generateTokenRow,
     revokeToken: revokeToken,
     parseQuery: parseQuery,
-    setupPage: setupPage
+    setupPage: setupPage,
+    showErrorMsg: showErrorMsg,
   };
 });
