@@ -10,6 +10,7 @@ let opts = config.provide(config.fromCommandLine);
 const logger = require('./lib/logger');
 
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 const path = require('path');
 
@@ -21,16 +22,29 @@ const model = require('./lib/model');
 
 const port = opts.get('port');
 
-const httpsopts = {
-  key: fs.readFileSync('./certs/priv.key'),
-  cert: fs.readFileSync('./certs/cert.pem')
-};
-
 const creation_msg = 'Created by owner via web interface';
 const revocation_msg = 'Revoked by owner via web interface';
 
 const app = express();
-const serv = https.createServer(httpsopts, app);
+let serv;
+
+if (opts.get('ssl')) {
+  let key = opts.get('sslkey');
+  let cert = opts.get('sslcert');
+  if (!(key && cert)) {
+    throw new Error('Running server on SSL requires both private key and ' +
+     'certificate to be defined');
+  }
+  let httpsopts = {
+    key: fs.readFileSync(key),
+    cert: fs.readFileSync(cert),
+  };
+
+  serv = https.createServer(httpsopts, app);
+} else {
+  serv = http.createServer(app);
+}
+
 
 app.use(helmet({
   hsts: false
