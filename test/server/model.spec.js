@@ -42,7 +42,7 @@ function testInput(method) {
 
 beforeAll(function(done) {
   // setup a mongo instance
-  tmpobj = tmp.dirSync({prefix: 'auth_test_'});
+  tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
   tmpdir = tmpobj.name;
   let command =
     `mongod --port 27017 --fork --dbpath ${tmpdir} ` +
