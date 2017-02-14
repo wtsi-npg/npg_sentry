@@ -1,4 +1,4 @@
-# auth
+# npg_sentry
 
 Basic expressjs server adding and removing tokens from database.
 **Very WIP**.
