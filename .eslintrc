@@ -24,6 +24,7 @@
     "linebreak-style": 2,
     "comma-dangle": 0,
     "space-in-parens": 0,
+    "semi": 2,
     "max-len": [
       2,
       120
@@ -34,4 +35,3 @@
     "lines-around-comment": 0
   }
 }
-
