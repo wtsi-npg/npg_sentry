@@ -73,6 +73,15 @@ app.post('/checkToken', function(req, res, next) {
   }, next);
 });
 
+app.post('/checkUser', function(req, res, next) {
+  let user = req.body.user;
+  let groups = req.body.groups;
+
+  model.checkUser(groups, user).then(function(decision) {
+    res.status(200).json({ok: decision});
+  }, next);
+});
+
 app.get('/listTokens', function(req, res, next) {
   // Returns all documents in db where user matches the
   // X-Remote-User header as an application/json array.
