@@ -57,7 +57,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     };
 
     $.post({
-      url: '/revokeToken',
+      url: 'revokeToken',
       data: JSON.stringify({token: token}),
       success: revokeSuccess,
       contentType: 'application/json',
@@ -94,7 +94,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     });
 
     $('#create-token-button').on('click', function() {
-      $.post('/createToken', function(data, status) {
+      $.post('createToken', function(data, status) {
         if (status === 'success') {
           var $th = $('#table-headers');
           var $row = generateTokenRow($('<tr></tr>'), data);
@@ -105,7 +105,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       });
     });
 
-    $.get('/listTokens', function(data, status) {
+    $.get('listTokens', function(data, status) {
       if (status === 'success') {
         var $table = $('#token-table');
         data.forEach(function(doc) {

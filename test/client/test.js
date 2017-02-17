@@ -45,8 +45,8 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
         }
       ];
       $.get = function mockAjax(url, cback) {
-        assert.strictEqual(url, '/listTokens',
-          'Makes request to /listTokens');
+        assert.strictEqual(url, 'listTokens',
+          'Makes request to listTokens');
         cback(data, 'success');
         assert.strictEqual(
           $('#token-table').children('tbody').children('tr').length, 2,
