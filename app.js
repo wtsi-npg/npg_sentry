@@ -33,7 +33,7 @@ app.post('/createToken', function(req, res, next) {
   // Generates a random 32 character string and enters it
   // into the db.
   // Returns the new document as an application/json body.
-  let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
+  let user = req.headers['x-remote-user'];
 
   model.createToken(user, creation_msg).then(function(response) {
     res.status(200).json(response);
@@ -45,7 +45,7 @@ app.post('/revokeToken', function(req, res, next) {
   // which is to be rejected. Updates the document in db so that
   // the 'status' field is set to 'revoked'.
   // Returns the updated document in  an application/json body.
-  let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
+  let user = req.headers['x-remote-user'];
   let token;
 
   try {
@@ -84,8 +84,8 @@ app.post('/checkUser', function(req, res, next) {
 
 app.get('/listTokens', function(req, res, next) {
   // Returns all documents in db where user matches the
-  // X-Remote-User header as an application/json array.
-  let user = 'an8@sanger.ac.uk';
+  // x-remote-user header as an application/json array.
+  let user = req.headers['x-remote-user'];
 
   model.listTokens(user).then(function(docs) {
     res.status(200).json(docs);
