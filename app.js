@@ -39,6 +39,10 @@ if (opts.get('ssl')) {
     key: fs.readFileSync(key),
     cert: fs.readFileSync(cert),
   };
+  let passphrase = opts.get('sslpassphrase');
+  if (passphrase) {
+    httpsopts.passphrase = passphrase;
+  }
 
   serv = https.createServer(httpsopts, app);
 } else {

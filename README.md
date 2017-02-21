@@ -32,6 +32,20 @@ $ # monitor processes
 $ pm2 monit
 ```
 
+Consider making an ecosystem file for pm2, for easier configuration
+
+```
+$ pm2 start ecosystem.config.js
+```
+
+###SSL configuration
+To run sentry on https, all 3 of the following configuration options must be set:
+- --ssl
+- --sslcert
+- --sslkey
+- (If the key is protected by a passphrase, then sslpassphrase must also be set)
+These can be set on command line (except sslpassphrase), in the pm2 ecosystem file (except sslpassphrase), or in a separate configuration file which is read by --config.
+
 ##Run tests
 
 ```
@@ -60,4 +74,3 @@ grunt test_coverage
 npm install -g artillery
 artillery run ./test/load/artillery.yml --target localhost:8000
 ```
-
