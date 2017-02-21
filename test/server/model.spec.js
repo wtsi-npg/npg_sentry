@@ -159,7 +159,8 @@ describe('exported function', function() {
         expect(moment(doc.issueTime).isValid()).toBe(true);
         expect(doc.creationReason).toBe('test creation');
         expect(moment(doc.expiryTime).isValid()).toBe(true);
-        // TODO missing test for duration
+        expect(moment(doc.expiryTime)
+          .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
       });
 
       let p_docExpectation = p_doc.then(function(doc) {
@@ -170,7 +171,8 @@ describe('exported function', function() {
         expect(moment(doc.issueTime).isValid()).toBe(true);
         expect(doc.creationReason).toBe('test creation');
         expect(moment(doc.expiryTime).isValid()).toBe(true);
-        // TODO missing test for duration
+        expect(moment(doc.expiryTime)
+          .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
       });
 
       Promise.all([p_countExpectation, p_docExpectation])
