@@ -2,14 +2,15 @@
 
 const child = require('child_process');
 
+const decache = require('decache');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
 
-const config = require('../../lib/config');
+let config = require('../../lib/config');
 config.provide(() => {return {mongourl: 'mongodb://localhost:27017/test'};});
-const model = require('../../lib/model');
+let model = require('../../lib/model');
 
 let p_db;
 let tmpobj;
@@ -85,6 +86,30 @@ describe('DbError', function() {
 });
 
 
+describe('mongo connection error', function() {
+  beforeAll(function() {
+    decache('../../lib/model');
+    config.provide(() => {return {mongourl: 'mongodb://invalid:27017/test'};});
+    model = require('../../lib/model');
+  });
+
+  afterAll(function() {
+    decache('../../lib/model');
+    config.provide(() => {return {mongourl: 'mongodb://localhost:27017/test'};});
+    model = require('../../lib/model');
+  });
+
+  it('succeeds', function(done) {
+    let user = 'user@example.com';
+    let p_insert = model.createToken(user, 'test creation');
+    p_insert.catch(function(reason) {
+      expect(reason).not.toBeUndefined();
+      done();
+    });
+  });
+});
+
+
 describe('exported function', function() {
 
   beforeEach(function() {
@@ -126,14 +151,28 @@ describe('exported function', function() {
         return cursor.next();
       });
 
-      let p_docExpectation = p_doc.then(function(doc) {
+      p_insert.then(function(doc) {
+        // test document returned by createToken
         expect(doc.user).toBe(user);
         expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
         expect(doc.status).toBe(model.TOKEN_STATUS_VALID);
         expect(moment(doc.issueTime).isValid()).toBe(true);
         expect(doc.creationReason).toBe('test creation');
         expect(moment(doc.expiryTime).isValid()).toBe(true);
-        // TODO missing test for duration
+        expect(moment(doc.expiryTime)
+          .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
+      });
+
+      let p_docExpectation = p_doc.then(function(doc) {
+        // test document inserted into database
+        expect(doc.user).toBe(user);
+        expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
+        expect(doc.status).toBe(model.TOKEN_STATUS_VALID);
+        expect(moment(doc.issueTime).isValid()).toBe(true);
+        expect(doc.creationReason).toBe('test creation');
+        expect(moment(doc.expiryTime).isValid()).toBe(true);
+        expect(moment(doc.expiryTime)
+          .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
       });
 
       Promise.all([p_countExpectation, p_docExpectation])
@@ -459,6 +498,130 @@ describe('exported function', function() {
         );
       }).then(done);
     });
-  });
 
+    it('successfully returns false when groups field is missing',
+      function(done) {
+        let user = 'nogroups@example.com';
+        let token = 'EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE';
+        let reqdGroups = ['1', '5'];
+
+        let p_tokenCollection = p_db.then(getCollection('tokens'));
+
+        let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+          return collection.insertOne({
+            user, token, status: model.TOKEN_STATUS_VALID
+          });
+        });
+
+        let p_userCollection = p_db.then(getCollection('users'));
+
+        let p_userInsertion = p_userCollection.then(function(collection) {
+          return collection.insertOne({user});
+        });
+
+        let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
+          .then(function() {
+            return model.checkToken(reqdGroups, token);
+          });
+
+        p_result.then(function(result) {
+          expect(result).toBe(false);
+          done();
+        });
+      });
+
+    it('successfully returns false when groups field is empty', function(done) {
+      let user = 'emptygroups@example.com';
+      let token = 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+      let reqdGroups = ['1', '5'];
+
+      let p_tokenCollection = p_db.then(getCollection('tokens'));
+
+      let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_VALID
+        });
+      });
+
+      let p_userCollection = p_db.then(getCollection('users'));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({user, groups: []});
+      });
+
+      let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
+        .then(function() {
+          return model.checkToken(reqdGroups, token);
+        });
+
+      p_result.then(function(result) {
+        expect(result).toBe(false);
+        done();
+      });
+    });
+
+    it('successfully returns false when token has been revoked', function(done) {
+      let user = 'revoked@example.com';
+      let token = 'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG';
+      let reqdGroups = ['1', '5'];
+
+      let p_tokenCollection = p_db.then(getCollection('tokens'));
+
+      let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_REVOKED
+        });
+      });
+
+      let p_userCollection = p_db.then(getCollection('users'));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({user, groups: ['1', '2', '5']});
+      });
+
+      let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
+        .then(function() {
+          return model.checkToken(reqdGroups, token);
+        });
+
+      p_result.then(function(result) {
+        expect(result).toBe(false);
+        done();
+      });
+    });
+
+    it('successfully returns false when token has expired', function(done) {
+      let user = 'revoked@example.com';
+      let token = 'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH';
+      let reqdGroups = ['1', '5'];
+      let expiryTime = moment(0).toISOString(); // 1 Jan 1970
+
+      let p_tokenCollection = p_db.then(getCollection('tokens'));
+
+      let p_tokenInsertion = p_tokenCollection.then(function(collection) {
+        return collection.insertOne({
+          user, token, status: model.TOKEN_STATUS_VALID, expiryTime
+        });
+      });
+
+      let p_userCollection = p_db.then(getCollection('users'));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({user, groups: ['1', '2', '5']});
+      });
+
+      let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
+        .then(function() {
+          return model.checkToken(reqdGroups, token);
+        });
+
+      p_result.then(function(result) {
+        expect(result).toBe(false);
+        done();
+      }, function(reason) {
+        fail(reason);
+        done();
+      });
+    });
+  });
 });
