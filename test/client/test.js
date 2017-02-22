@@ -72,7 +72,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
     });
 
     QUnit.test('Show error message', function(assert) {
-      assert.expect(3);
+      assert.expect(9);
 
       assert.strictEqual(
         $('#error-container').children().length, 0,
@@ -85,6 +85,64 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
       assert.strictEqual(
         $('#error-container').children().length, 0,
         'Error container is empty again after click event');
+
+      var oldAjaxGet = $.get;
+      $.get = function mockAjaxPost(opts) {
+        opts.error({status: 500, statusText: '/listTokens test error'});
+      };
+      auth.setupPage();
+
+      assert.strictEqual(
+        $('#error-container').children().length, 1,
+        'Error container shows the error from listTokens'
+      );
+      assert.strictEqual(
+        $('#error-container').children().last().text(),
+        'Error when getting token list: 500: /listTokens test error',
+        'Error message is as expected'
+      );
+      $.get = oldAjaxGet;
+
+      var oldAjaxPost = $.post;
+      $.post = function mockAjaxCreatePost(opts) {
+        opts.error({status: 500, statusText: '/createToken test error'});
+      };
+      $('#create-token-button').triggerHandler('click');
+      assert.strictEqual(
+        $('#error-container').children().length, 2,
+        'Error container shows the error from createToken'
+      );
+      assert.strictEqual(
+        $('#error-container').children().last().text(),
+        'Error when submitting token request: 500: /createToken test error',
+        'Error message is as expected'
+      );
+      $.post = oldAjaxPost;
+
+      var data = {
+        token: 'abc',
+        status: 'valid',
+        user: 'user@example.com',
+      };
+      var $th = $('#table-headers');
+      var $row = auth.generateTokenRow($('<tr></tr>'), data);
+      $th.after($row);
+
+      var oldAjaxPost = $.post;
+      $.post = function mockAjaxRevokePost(opts) {
+        opts.error({status: 500, statusText: '/revokeToken test error'});
+      };
+      $row.children('.revoke-link').triggerHandler('click');
+      assert.strictEqual(
+        $('#error-container').children().length, 3,
+        'Error container shows the error from revokeToken'
+      );
+      assert.strictEqual(
+        $('#error-container').children().last().text(),
+        'Error when submitting token revocation: 500: /revokeToken test error',
+        'Error message is as expected'
+      );
+      $.post = oldAjaxPost;
     });
 
     QUnit.test('Tokens can be revoked', function(assert) {
@@ -155,7 +213,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
 
         var tokenTableRows = $('#token-table').children('tbody').children('tr');
         assert.strictEqual(tokenTableRows.length, 2,
-          'Table is contains new token after request to /createTokens'
+          'Table contains new token after request to /createTokens'
         );
       };
       auth.setupPage();

@@ -72,7 +72,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       dataType: 'json',
       error: function(jqXHR) {
         showErrorMsg(
-          'Error ' + jqXHR.status + ': Couldn\'t submit token revocation');
+          'Error when submitting token revocation: ' + jqXHR.status + ': ' + jqXHR.statusText);
       }
     });
   };
@@ -115,7 +115,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
         },
         error: function(jqXHR) {
           showErrorMsg(
-            'Error ' + jqXHR.status + ': Couldn\'t submit token request');
+            'Error when submitting token request: ' + jqXHR.status + ': ' + jqXHR.statusText);
         }
       });
     });
@@ -132,7 +132,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       },
       error: function(jqXHR) {
         showErrorMsg(
-          'Error ' + jqXHR.status + ': Couldn\'t list available tokens');
+          'Error when getting token list: ' + jqXHR.status + ': ' + jqXHR.statusText);
       }
     });
 
