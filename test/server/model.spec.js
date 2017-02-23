@@ -30,17 +30,6 @@ function getCollection(collName) {
   };
 }
 
-function testInput(method) {
-  it('fails without arguments', function(done) {
-    method().then(function() {
-      fail();
-    }, function(reason) {
-      expect(reason instanceof Error).toBe(true);
-      expect(reason.message).toBe(method.name + ': undefined argument(s)');
-    }).then(done);
-  });
-}
-
 beforeAll(function(done) {
   // setup a mongo instance
   tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
@@ -330,7 +319,7 @@ describe('exported function', function() {
       p_revoke.then(function() {
         fail('Unexpectedly revoked token but users do not match');
       }, function(reason) {
-        expect(reason.message).toEqual('This user does not own this token');
+        expect(reason.message).toEqual(model.ERROR_USER_NOT_TOKEN_OWNER);
       }).then(done, function(reason) {
         fail(reason);
         done();
@@ -352,7 +341,7 @@ describe('exported function', function() {
       }, function(reason) {
         expect(reason instanceof model.DbError).toBe(true);
         expect(reason.message).toBe(
-          'Unexpected number of documents containing this token'
+          model.ERROR_UNEXPECTED_NUM_DOCS
         );
       }).then(done, function(reason) {
         fail(reason);
@@ -516,7 +505,27 @@ describe('exported function', function() {
       });
     });
 
-    testInput(model.checkToken);
+    it('rejects with invalid parameters', function(done) {
+      model.checkToken().catch(function (reason) {
+        expect(reason).toMatch(/checkToken: groups is not defined/i);
+        done();
+      });
+
+      model.checkToken(1).catch(function (reason) {
+        expect(reason).toMatch(/checkToken: groups must be an Array/i);
+        done();
+      });
+
+      model.checkToken(['a_group']).catch(function (reason) {
+        expect(reason).toMatch(/checkToken: token is not defined/i);
+        done();
+      });
+
+      model.checkToken(['a_group'], 1).catch(function (reason) {
+        expect(reason).toMatch(/checkToken: token must be a string/i);
+        done();
+      });
+    });
 
     it('fails when token does not exist', function(done) {
       let user = 'user@example.com';
@@ -538,7 +547,7 @@ describe('exported function', function() {
       }, function(reason) {
         expect(reason instanceof model.DbError).toBe(true);
         expect(reason.message).toBe(
-          'Unexpected number of documents containing this token'
+          model.ERROR_UNEXPECTED_NUM_DOCS
         );
       }).then(done, function(reason) {
         fail(reason);
