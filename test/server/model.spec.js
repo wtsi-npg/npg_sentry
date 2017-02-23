@@ -88,7 +88,7 @@ describe('mongo connection error', function() {
     model = require('../../lib/model');
   });
 
-  it('succeeds', function(done) {
+  it('is raised', function(done) {
     let user = 'user@example.com';
     let p_insert = model.createToken(user, 'test creation');
     p_insert.catch(function(reason) {
@@ -140,8 +140,9 @@ describe('exported function', function() {
         return cursor.next();
       });
 
-      p_insert.then(function(doc) {
+      let p_insertTest = p_insert.then(function(doc) {
         // test document returned by createToken
+        expect(doc).toBeDefined();
         expect(doc.user).toBe(user);
         expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
         expect(doc.status).toBe(model.TOKEN_STATUS_VALID);
@@ -154,6 +155,7 @@ describe('exported function', function() {
 
       let p_docExpectation = p_doc.then(function(doc) {
         // test document inserted into database
+        expect(doc).toBeDefined();
         expect(doc.user).toBe(user);
         expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
         expect(doc.status).toBe(model.TOKEN_STATUS_VALID);
@@ -164,32 +166,38 @@ describe('exported function', function() {
           .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
       });
 
-      Promise.all([p_countExpectation, p_docExpectation])
-      .catch(function() {
-        fail();
-      }).then(done);
+      Promise.all([p_countExpectation, p_docExpectation, p_insertTest])
+      .then(done, done.fail);
     });
 
     it('rejects with invalid parameters', function(done) {
-      model.createToken().catch(function (reason) {
+      let ps = [];
+
+      ps.push(model.createToken().then(function() {
+        return Promise.reject('Unexpectedly created token but user is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/createToken: user is not defined/i);
-        done();
-      });
+      }));
 
-      model.createToken(1).catch(function (reason) {
+      ps.push(model.createToken(1).then(function() {
+        return Promise.reject('Unexpectedly created token but user is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/createToken: user must be a string/i);
-        done();
-      });
+      }));
 
-      model.createToken('user').catch(function (reason) {
+      ps.push(model.createToken('user').then(function() {
+        return Promise.reject('Unexpectedly created token but justification is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/createToken: justification is not defined/i);
-        done();
-      });
+      }));
 
-      model.createToken('user', 1).catch(function (reason) {
+      ps.push(model.createToken('user', 1).then(function() {
+        return Promise.reject('Unexpectedly created token but justification is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/createToken: justification must be a string/i);
-        done();
-      });
+      }));
+
+      Promise.all(ps).then(done, done.fail);
     });
   });
 
@@ -223,44 +231,53 @@ describe('exported function', function() {
       });
 
       p_doc.then(function(doc) {
+        expect(doc).toBeDefined();
         expect(doc.user).toBe(user);
         expect(doc.token).toBe(token);
         expect(doc.status).toBe(model.TOKEN_STATUS_REVOKED);
-      }, function(reason) {
-        fail(reason);
-      }).then(done);
+      }).then(done, done.fail);
     });
 
     it('rejects with invalid parameters', function(done) {
-      model.revokeToken().catch(function (reason) {
+      let ps = [];
+
+      ps.push(model.revokeToken().then(function() {
+        return Promise.reject('Unexpectedly revoked token but user is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: user is not defined/i);
-        done();
-      });
+      }));
 
-      model.revokeToken(1).catch(function (reason) {
+      ps.push(model.revokeToken(1).then(function() {
+        return Promise.reject('Unexpectedly revoked token but user is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: user must be a string/i);
-        done();
-      });
+      }));
 
-      model.revokeToken('user').catch(function (reason) {
+      ps.push(model.revokeToken('user').then(function() {
+        return Promise.reject('Unexpectedly revoked token but token is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: token is not defined/i);
-        done();
-      });
+      }));
 
-      model.revokeToken('user', 1).catch(function (reason) {
+      ps.push(model.revokeToken('user', 1).then(function() {
+        return Promise.reject('Unexpectedly revoked token but token is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: token must be a string/i);
-        done();
-      });
+      }));
 
-      model.revokeToken('user', 'token').catch(function (reason) {
+      ps.push(model.revokeToken('user', 'token').then(function() {
+        return Promise.reject('Unexpectedly revoked token but justification is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: justification is not defined/i);
-        done();
-      });
+      }));
 
-      model.revokeToken('user', 'token', 1).catch(function (reason) {
+      ps.push (model.revokeToken('user', 'token', 1).then(function() {
+        return Promise.reject('Unexpectedly revoked token but justification is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/revokeToken: justification must be a string/i);
-        done();
-      });
+      }));
+
+      Promise.all(ps).then(done, done.fail);
     });
 
     it('fails when users do not match', function(done) {
@@ -281,12 +298,10 @@ describe('exported function', function() {
       });
 
       p_revoke.then(function() {
-        // p_revoke should be rejected because users do not match
-        fail();
+        fail('Unexpectedly revoked token but users do not match');
       }, function(reason) {
         expect(reason.message).toEqual(model.ERROR_USER_NOT_TOKEN_OWNER);
-      })
-      .then(done);
+      }).then(done, done.fail);
     });
 
     it('fails when token does not exist', function(done) {
@@ -299,25 +314,15 @@ describe('exported function', function() {
         return model.revokeToken(user, token, 'Test revocation');
       });
 
-      let p_cursor = p_revoke.then(function() {
-        return p_collection.then(function(collection) {
-          return collection.find({token});
-        });
-      });
-
-      let p_doc = p_cursor.then(function(cursor) {
-        return cursor.next();
-      });
-
-      p_doc.catch(function(reason) {
+      p_revoke.then(function() {
+        fail('Unexpectedly revoked token but token should not exist');
+      }, function(reason) {
         expect(reason instanceof model.DbError).toBe(true);
         expect(reason.message).toBe(
           model.ERROR_UNEXPECTED_NUM_DOCS
         );
-        done();
-      });
+      }).then(done, done.fail);
     });
-
   });
 
 
@@ -361,9 +366,7 @@ describe('exported function', function() {
           return row.status === model.TOKEN_STATUS_VALID;
         });
         expect(tokensValid).toBe(true);
-      }, function(reason) {
-        fail(reason);
-      }).then(done);
+      }).then(done, done.fail);
     });
 
     it('succeeds despite no tokens', function(done) {
@@ -378,21 +381,25 @@ describe('exported function', function() {
       p_noTokens.then(function(tokens) {
         expect(tokens instanceof Array).toBe(true);
         expect(tokens.length).toBe(0);
-      }, function(reason) {
-        fail(reason);
-      }).then(done);
+      }).then(done, done.fail);
     });
 
     it('rejects with invalid parameters', function(done) {
-      model.listTokens().catch(function (reason) {
-        expect(reason).toMatch(/listTokens: user is not defined/i);
-        done();
-      });
+      let ps = [];
 
-      model.listTokens(1).catch(function (reason) {
+      ps.push(model.listTokens().then(function() {
+        return Promise.reject('Unexpectedly listed tokens but user is not defined');
+      }, function (reason) {
+        expect(reason).toMatch(/listTokens: user is not defined/i);
+      }));
+
+      ps.push(model.listTokens(1).then(function() {
+        return Promise.reject('Unexpectedly listed tokens but user is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/listTokens: user must be a string/i);
-        done();
-      });
+      }));
+
+      Promise.all(ps).then(done, done.fail);
     });
   });
 
@@ -427,7 +434,7 @@ describe('exported function', function() {
       p_result.then(function(result) {
         expect(result).toBe(true);
         done();
-      });
+      }, done.fail);
     });
 
     it('successfully returns false', function(done) {
@@ -458,29 +465,37 @@ describe('exported function', function() {
       p_result.then(function(result) {
         expect(result).toBe(false);
         done();
-      });
+      }, done.fail);
     });
 
     it('rejects with invalid parameters', function(done) {
-      model.checkToken().catch(function (reason) {
+      let ps = [];
+
+      ps.push(model.checkToken().then(function() {
+        return Promise.reject('Unexpectedly checked tokens but groups is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: groups is not defined/i);
-        done();
-      });
+      }));
 
-      model.checkToken(1).catch(function (reason) {
+      ps.push(model.checkToken(1).then(function() {
+        return Promise.reject('Unexpectedly checked tokens but groups is not an Array');
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: groups must be an Array/i);
-        done();
-      });
+      }));
 
-      model.checkToken(['a_group']).catch(function (reason) {
+      ps.push(model.checkToken(['a_group']).then(function() {
+        return Promise.reject('Unexpectedly checked tokens but token is not defined');
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: token is not defined/i);
-        done();
-      });
+      }));
 
-      model.checkToken(['a_group'], 1).catch(function (reason) {
+      ps.push(model.checkToken(['a_group'], 1).then(function() {
+        return Promise.reject('Unexpectedly checked tokens but is not a string');
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: token must be a string/i);
-        done();
-      });
+      }));
+
+      Promise.all(ps).then(done, done.fail);
     });
 
     it('fails when token does not exist', function(done) {
@@ -505,7 +520,7 @@ describe('exported function', function() {
         expect(reason.message).toBe(
           model.ERROR_UNEXPECTED_NUM_DOCS
         );
-      }).then(done);
+      }).then(done, done.fail);
     });
 
     it('successfully returns false when groups field is missing',
@@ -536,7 +551,7 @@ describe('exported function', function() {
         p_result.then(function(result) {
           expect(result).toBe(false);
           done();
-        });
+        }, done.fail);
       });
 
     it('successfully returns false when groups field is empty', function(done) {
@@ -566,7 +581,7 @@ describe('exported function', function() {
       p_result.then(function(result) {
         expect(result).toBe(false);
         done();
-      });
+      }, done.fail);
     });
 
     it('successfully returns false when token has been revoked', function(done) {
@@ -596,7 +611,7 @@ describe('exported function', function() {
       p_result.then(function(result) {
         expect(result).toBe(false);
         done();
-      });
+      }, done.fail);
     });
 
     it('successfully returns false when token has expired', function(done) {
@@ -627,10 +642,7 @@ describe('exported function', function() {
       p_result.then(function(result) {
         expect(result).toBe(false);
         done();
-      }, function(reason) {
-        fail(reason);
-        done();
-      });
+      }, done.fail);
     });
   });
 });
