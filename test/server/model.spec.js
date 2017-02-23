@@ -506,22 +506,34 @@ describe('exported function', function() {
     });
 
     it('rejects with invalid parameters', function(done) {
-      model.checkToken().catch(function (reason) {
+      model.checkToken().then(function() {
+        fail('Unexpectedly checked tokens but groups is not defined');
+        done();
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: groups is not defined/i);
         done();
       });
 
-      model.checkToken(1).catch(function (reason) {
+      model.checkToken(1).then(function() {
+        fail('Unexpectedly checked tokens but groups is not an Array');
+        done();
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: groups must be an Array/i);
         done();
       });
 
-      model.checkToken(['a_group']).catch(function (reason) {
+      model.checkToken(['a_group']).then(function() {
+        fail('Unexpectedly checked tokens but token is not defined');
+        done();
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: token is not defined/i);
         done();
       });
 
-      model.checkToken(['a_group'], 1).catch(function (reason) {
+      model.checkToken(['a_group'], 1).then(function() {
+        fail('Unexpectedly checked tokens but is not a string');
+        done();
+      }, function (reason) {
         expect(reason).toMatch(/checkToken: token must be a string/i);
         done();
       });
