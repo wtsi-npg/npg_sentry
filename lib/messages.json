@@ -2,5 +2,9 @@
   "ERRORS": {
     "UNEXPECTED_NUM_DOCS": "Unexpected number of documents containing this token",
     "USER_NOT_TOKEN_OWNER": "This user does not own this token"
+  },
+  "WEB_TOKEN": {
+    "CREATION_MSG": "Created by owner via web interface",
+    "REVOCATION_MSG": "Revoked by owner via web interface"
   }
 }
