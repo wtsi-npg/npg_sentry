@@ -18,12 +18,10 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const helmet = require('helmet');
 
+const constants = require('./lib/constants');
 const model = require('./lib/model');
 
 const port = opts.get('port');
-
-const creation_msg = 'Created by owner via web interface';
-const revocation_msg = 'Revoked by owner via web interface';
 
 const app = express();
 let serv;
@@ -65,9 +63,9 @@ app.post('/createToken', function(req, res, next) {
   // Generates a random 32 character string and enters it
   // into the db.
   // Returns the new document as an application/json body.
-  let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
+  let user = req.headers[constants.USER_ID_HEADER];
 
-  model.createToken(user, creation_msg).then(function(response) {
+  model.createToken(user, constants.WEB_TOKEN_CREATION_MSG).then(function(response) {
     res.status(200).json(response);
   }, next);
 });
@@ -77,7 +75,7 @@ app.post('/revokeToken', function(req, res, next) {
   // which is to be rejected. Updates the document in db so that
   // the 'status' field is set to 'revoked'.
   // Returns the updated document in  an application/json body.
-  let user = 'an8@sanger.ac.uk'; //req.headers['X-Remote-User'];
+  let user = req.headers[constants.USER_ID_HEADER];
   let token;
 
   try {
@@ -86,7 +84,7 @@ app.post('/revokeToken', function(req, res, next) {
     next(e);
   }
 
-  model.revokeToken(user, token, revocation_msg).then(function(row) {
+  model.revokeToken(user, token, constants.WEB_TOKEN_REVOCATION_MSG).then(function(row) {
     res.status(200).json(row);
   }, next);
 });
@@ -105,10 +103,19 @@ app.post('/checkToken', function(req, res, next) {
   }, next);
 });
 
+app.post('/checkUser', function(req, res, next) {
+  let user = req.body.user;
+  let groups = req.body.groups;
+
+  model.checkUser(groups, user).then(function(decision) {
+    res.status(200).json({ok: decision});
+  }, next);
+});
+
 app.get('/listTokens', function(req, res, next) {
   // Returns all documents in db where user matches the
-  // X-Remote-User header as an application/json array.
-  let user = 'an8@sanger.ac.uk';
+  // x-remote-user header as an application/json array.
+  let user = req.headers[constants.USER_ID_HEADER];
 
   model.listTokens(user).then(function(docs) {
     res.status(200).json(docs);
