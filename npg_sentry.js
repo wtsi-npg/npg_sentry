@@ -16,6 +16,7 @@ if ( module.parent ) {
 }
 const logger = require('./lib/logger');
 
+const assert = require('assert');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -33,6 +34,7 @@ const app = express();
 let serv;
 
 if (opts.get('ssl')) {
+  assert(opts.get('sslkey') && opts.get('sslcert'));
   let key = opts.get('sslkey');
   let cert = opts.get('sslcert');
   if (!(key && cert)) {
@@ -42,10 +44,16 @@ if (opts.get('ssl')) {
   let httpsopts = {
     key: fs.readFileSync(key),
     cert: fs.readFileSync(cert),
+    requestCert: true,
+    rejectUnauthorized: true,
   };
   let passphrase = opts.get('sslpassphrase');
   if (passphrase) {
     httpsopts.passphrase = passphrase;
+  }
+  let ca = opts.get('sslca');
+  if (ca) {
+    httpsopts.ca = ca;
   }
 
   serv = https.createServer(httpsopts, app);
