@@ -15,11 +15,13 @@
   },
   "files": [
     ".bowerrc",
+    "app.js",
     "bower.json",
     "package.json",
     "CHANGES",
     "LICENSE",
     "README.md",
+    "lib",
     "sentry",
     "sentry/public",
     "sentry/public/css",
@@ -27,6 +29,9 @@
     "sentry/views"
   ],
   "homepage": "https://github.com/wtsi-npg/npg_sentry",
+  "bin": {
+    "npg_sentry": "app.js"
+  },
   "main": "app.js",
   "scripts": {
     "test": "grunt test",
