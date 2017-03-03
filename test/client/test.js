@@ -1,5 +1,5 @@
 requirejs.config({
-  baseUrl: '../../public/js',
+  baseUrl: '../../sentry/public/js',
   paths: {
     'qunit': 'bower_components/qunit/qunit/qunit',
     jquery: 'bower_components/jquery/dist/jquery',

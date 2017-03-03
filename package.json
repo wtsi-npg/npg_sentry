@@ -15,7 +15,12 @@
     "package.json",
     "CHANGES",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "sentry",
+    "sentry/public",
+    "sentry/public/css",
+    "sentry/public/js",
+    "sentry/views"
   ],
   "homepage": "https://github.com/wtsi-npg/npg_sentry",
   "main": "app.js",

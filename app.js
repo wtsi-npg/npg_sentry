@@ -122,12 +122,12 @@ app.get('/listTokens', function(req, res, next) {
   }, next);
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'sentry/public')));
 
 app.use(function(req, res) {
   let statusCode = 404;
   res.status(statusCode)
-    .render(path.join(__dirname, 'views', 'error'),
+    .render(path.join(__dirname, 'sentry/views', 'error'),
       {err: 'Not Found', statusCode});
 });
 
