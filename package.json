@@ -9,6 +9,12 @@
   "bugs": {
     "url": "https://github.com/wtsi-npg/npg_sentry/issues"
   },
+  "files": [
+    "package.json",
+    "CHANGES",
+    "LICENSE",
+    "README.md"
+  ],
   "homepage": "https://github.com/wtsi-npg/npg_sentry",
   "main": "app.js",
   "scripts": {
