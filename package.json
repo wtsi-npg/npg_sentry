@@ -16,7 +16,7 @@
     "start": "node app.js"
   },
   "author": "@aacn500",
-  "license": "GPL-3.0",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "body-parser": "1.16.x",
     "config-chain": "1.1.x",
