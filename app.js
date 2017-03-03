@@ -1,9 +1,11 @@
-/**
- * Copyright (C) 2017 Genome Research Ltd
- * See license in LICENSE
- */
+#!/usr/bin/env node
 
 'use strict';
+
+/**
+ * @author Andrew Nowak
+ * @copyright Genome Research Limited 2017
+ */
 
 const config = require('./lib/config');
 let opts = config.provide(config.fromCommandLine);
