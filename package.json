@@ -1,28 +1,44 @@
 {
-  "name": "@aacn500/auth",
+  "name": "npg_sentry",
   "version": "0.1.0",
-  "description": "Auth server for npg_ranger",
+  "description": "Auth server for npg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wtsi-npg/npg_sentry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wtsi-npg/npg_sentry/issues"
+  },
+  "homepage": "https://github.com/wtsi-npg/npg_sentry",
   "main": "app.js",
   "scripts": {
     "test": "grunt test",
-    "start": "grunt minify && node app.js"
+    "start": "node app.js"
   },
   "author": "@aacn500",
   "license": "GPL-3.0",
   "dependencies": {
     "body-parser": "1.16.x",
+    "config-chain": "1.1.x",
     "ejs": "2.5.x",
     "express": "4.14.x",
+    "log4js": "1.1.x",
+    "helmet": "3.4.x",
     "moment": "2.17.x",
-    "mongodb": "2.2.x"
+    "mongodb": "2.2.x",
+    "node-getopt": "0.2.3"
   },
   "devDependencies": {
+    "decache": "4.1.0",
     "fs-extra": "2.0.x",
     "grunt": "1.0.x",
+    "grunt-contrib-clean": "1.0.0",
     "grunt-contrib-cssmin": "1.0.x",
+    "grunt-contrib-qunit": "1.3.0",
     "grunt-contrib-uglify": "2.0.x",
     "grunt-eslint": "19.0.x",
-    "grunt-jasmine-nodejs": "1.5.x",
+    "grunt-jsonlint": "1.0.x",
+    "grunt-jasmine-node-coverage": "1.1.x",
     "grunt-newer": "1.2.x",
     "load-grunt-tasks": "3.5.x",
     "tmp": "0.0.31"

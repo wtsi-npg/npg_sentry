@@ -13,7 +13,9 @@ install:
   - export PATH="/tmp/usr/bin:${PATH}"
   - npm install -g npm@3.10.10
   - npm install -g grunt-cli@1.2.0
+  - npm install -g bower@1.8.0
   - npm install
+  - bower install
 
 before_script:
   - node --version
@@ -21,7 +23,7 @@ before_script:
   - mongo --version
 
 script:
-  - grunt -v
+  - if [ "${RUN_COVERAGE}" = "true" ]; then grunt -v test_coverage; else grunt -v; fi
 
 after_script:
   - cat /tmp/*/test_db.log

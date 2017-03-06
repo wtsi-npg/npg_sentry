@@ -1,0 +1,26 @@
+{
+  "name": "npg_sentry",
+  "description": "Auth server for npg",
+  "main": "app.js",
+  "authors": [
+    "@aacn500"
+  ],
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/wtsi-npg/npg_sentry",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "3.1.1",
+    "requirejs": "2.3.2",
+    "clipboard": "1.5.16"
+  },
+  "devDependencies": {
+    "qunit": "2.1.1"
+  }
+}

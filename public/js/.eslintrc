@@ -4,11 +4,11 @@
   },
   "env": {
     "node": false,
+    "amd": true,
     "browser": true
   },
   "globals": {
-    "$": true,
-    "Clipboard": true
+    "requirejs": true
   },
   "rules": {
     "no-var": 0

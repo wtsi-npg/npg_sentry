@@ -1,0 +1,17 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 5
+  },
+  "env": {
+    "node": false,
+    "amd": true,
+    "browser": true
+  },
+  "globals": {
+    "requirejs": true
+  },
+  "rules": {
+    "no-var": 0
+  }
+}
+

@@ -3,10 +3,11 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Token Management</title>
-    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="../../public/css/styles.css">
   </head>
   <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture">
     <div id="page">
 
       <div id="welcome">
@@ -42,8 +43,7 @@
         </button>
       </div>
 
-      <div id="error-container">
-      </div>
+      <div id="error-container"></div>
 
       <table id="token-table">
         <colgroup>
@@ -56,18 +56,17 @@
         <tr id="table-headers">
           <th>Username</th>
           <th>Token</th>
-          <th></th><!-- Copy tokens buttons go in this column -->
+          <th></th>
           <th>Status</th>
           <th>Revoke</th>
         </tr>
       </table>
 
+      </div>
     </div>
-
     <script
-      type="application/javascript"
-      data-main="js/main.js"
-      src="js/bower_components/requirejs/require.js">
+      src="../../public/js/bower_components/requirejs/require.js">
     </script>
+    <script src="test.js"></script>
   </body>
 </html>
