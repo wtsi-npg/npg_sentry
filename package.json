@@ -15,7 +15,7 @@
   },
   "files": [
     ".bowerrc",
-    "app.js",
+    "npg_sentry.js",
     "bower.json",
     "package.json",
     "CHANGES",
@@ -30,12 +30,12 @@
   ],
   "homepage": "https://github.com/wtsi-npg/npg_sentry",
   "bin": {
-    "npg_sentry": "app.js"
+    "npg_sentry": "npg_sentry.js"
   },
-  "main": "app.js",
+  "main": "npg_sentry.js",
   "scripts": {
     "test": "grunt test",
-    "start": "./app.js",
+    "start": "./npg_sentry.js",
     "postinstall" : "./node_modules/.bin/bower install"
   },
   "author": "@aacn500",

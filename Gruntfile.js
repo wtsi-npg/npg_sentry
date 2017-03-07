@@ -33,7 +33,7 @@ module.exports = function(grunt) {
     eslint: {
       target: [
         'Gruntfile.js',
-        'app.js',
+        'npg_sentry.js',
         'lib/*.js',
         'sentry/public/js/*.js',
         'test/**/*.js',

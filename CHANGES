@@ -1,2 +1,3 @@
 
+ - renaming app.js to npg_sentry.js
  - adding linting and tests
