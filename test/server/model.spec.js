@@ -8,10 +8,14 @@ const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
 
+let BASE_PORT  = 9000;
+let PORT_RANGE = 200;
+let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
+
 const constants = require('../../lib/constants');
 let config = require('../../lib/config');
 
-config.provide(() => {return {mongourl: 'mongodb://localhost:27017/test'};});
+config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
 let model = require('../../lib/model');
 
 let p_db;
@@ -37,20 +41,19 @@ beforeAll(function(done) {
   tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
   tmpdir = tmpobj.name;
   let command =
-    `mongod --port 27017 --fork --dbpath ${tmpdir} ` +
+    `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
     `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
   console.log(`\nStarting MongoDB daemon: ${command}`);
   let out = child.execSync(command);
   console.log(`MongoDB daemon started: ${out}`);
-  child.execSync('./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p 27017');
-  p_db = MongoClient.connect('mongodb://localhost:27017/test');
+  child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
+  p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
   p_db.then(done);
 }, 25000);
 
-
 afterAll(function(done) {
   child.execSync(
-    `mongo 'mongodb://localhost:27017/admin' --eval 'db.shutdownServer()'`
+    `mongo 'mongodb://localhost:${PORT}/admin' --eval 'db.shutdownServer()'`
   );
   console.log('\nMongoDB daemon has been switched off');
   fse.remove(tmpdir, function(err) {
@@ -61,9 +64,7 @@ afterAll(function(done) {
   });
 });
 
-
 describe('DbError', function() {
-
   it('is a subclass of Error', function() {
     let err = new model.DbError('something bad');
     expect(err.name).toBe('DbError');
@@ -73,20 +74,18 @@ describe('DbError', function() {
     expect(err.stack).toBeDefined();
     expect(err.toString()).toBe('DbError: something bad');
   });
-
 });
-
 
 describe('mongo connection error', function() {
   beforeAll(function() {
     decache('../../lib/model');
-    config.provide(() => {return {mongourl: 'mongodb://invalid:27017/test'};});
+    config.provide(() => {return {mongourl: `mongodb://invalid:${PORT}/test`};});
     model = require('../../lib/model');
   });
 
   afterAll(function() {
     decache('../../lib/model');
-    config.provide(() => {return {mongourl: 'mongodb://localhost:27017/test'};});
+    config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
     model = require('../../lib/model');
   });
 
@@ -100,11 +99,9 @@ describe('mongo connection error', function() {
   });
 });
 
-
 describe('exported function', function() {
-
   beforeEach(function() {
-    child.execSync('mongo --eval "db.tokens.drop();db.users.drop();"');
+    child.execSync(`mongo 'mongodb://localhost:${PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
   });
 
   describe('createToken', function() {
