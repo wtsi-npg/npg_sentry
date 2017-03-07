@@ -150,4 +150,4 @@ app.use(function(err, req, res, next) {
 });
 
 serv.listen(port);
-logger.info(`express started on port ${port}`);
+logger.info(`npg_sentry started on port ${port}`);
