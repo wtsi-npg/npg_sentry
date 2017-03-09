@@ -9,9 +9,10 @@ const fse         = require('fs-extra');
 const request     = require('request');
 const tmp         = require('tmp');
 
-
 let config    = require('../../lib/config');
 let constants = require('../../lib/constants');
+
+let utils     = require('./test_utils');
 
 let BASE_PORT   = 9000;
 let PORT_RANGE  = 200;
@@ -21,20 +22,6 @@ let SERVER_PORT = Math.floor(Math.random() * PORT_RANGE) + DB_PORT;
 let p_db;
 let tmpobj;
 let tmpdir;
-
-function getCollection(collName) {
-  return function(db) {
-    return new Promise(function(resolve, reject) {
-      db.collection(collName, function(err, collection) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(collection);
-        }
-      });
-    });
-  };
-}
 
 beforeAll(function(done) {
   // setup a mongo instance
@@ -64,7 +51,7 @@ afterAll(function(done) {
   });
 });
 
-describe('token man', function () {
+describe('authorisation', function () {
   let server;
 
   beforeAll(function(done) {
@@ -90,88 +77,95 @@ describe('token man', function () {
     done();
   });
 
-  it('rejects when checking unknown user', function (done) {
-    request.post({
-      url: `http://localhost:${SERVER_PORT}/checkUser`,
-      headers: {
-        "content-type": 'application/json',
-        "x-remote-user": 'someuser@domain.com'
-      },
-      body: JSON.stringify({
-        groups: ['1', '2', '3'],
-        user:   'someuser@domain.com'
-      })
-    }, (err, res) => {
-      if(err){
-        done.fail();
-      }
-      expect(res.statusCode).not.toBe(200);
+  describe('user checking', function() {
+    beforeEach(function(done) {
+      child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
       done();
     });
-  });
 
-  it('rejects when checking user with different groups', function (done) {
-    let groups = [ '1', '2' ];
-    let user = 'someuser@domain.com';
-
-    let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
-
-    let p_userInsertion = p_userCollection.then(function(collection) {
-      return collection.insertOne({
-        user:   user,
-        groups: groups });
-    });
-
-    p_userInsertion.then(function() {
+    it('rejects when checking unknown user', function (done) {
       request.post({
         url: `http://localhost:${SERVER_PORT}/checkUser`,
         headers: {
           "content-type": 'application/json',
-          "x-remote-user": user
+          "x-remote-user": 'someuser@domain.com'
         },
         body: JSON.stringify({
           groups: ['1', '2', '3'],
-          user:   user
+          user:   'someuser@domain.com'
         })
-      }, (err, res, body) => {
-        expect(res.statusCode).toBe(200);
-        let jbody = JSON.parse(body);
-        expect(jbody.ok).toBe(false);
+      }, (err, res) => {
+        if(err){
+          done.fail();
+        }
+        expect(res.statusCode).not.toBe(200);
         done();
       });
-    }, done.fail);
-  });
-
-  it('ok when checking user with different groups', function (done) {
-    let groups = [ '1', '2', '3' ];
-    let user = 'someuser@domain.com';
-
-    let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
-
-    let p_userInsertion = p_userCollection.then(function(collection) {
-      return collection.insertOne({
-        user:   user,
-        groups: groups });
     });
 
-    p_userInsertion.then(function() {
-      request.post({
-        url: `http://localhost:${SERVER_PORT}/checkUser`,
-        headers: {
-          "content-type": 'application/json',
-          "x-remote-user": user
-        },
-        body: JSON.stringify({
-          groups: groups,
-          user:   user
-        })
-      }, (err, res, body) => {
-        expect(res.statusCode).toBe(200);
-        let jbody = JSON.parse(body);
-        expect(jbody.ok).toBe(true);
-        done();
+    it('rejects when checking user with different groups', function (done) {
+      let groups = [ '1', '2' ];
+      let user = 'someuser@domain.com';
+
+      let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({
+          user:   user,
+          groups: groups });
       });
-    }, done.fail);
+
+      p_userInsertion.then(function() {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/checkUser`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
+          },
+          body: JSON.stringify({
+            groups: ['1', '2', '3'],
+            user:   user
+          })
+        }, (err, res, body) => {
+          expect(res.statusCode).toBe(200);
+          let jbody = JSON.parse(body);
+          expect(jbody.ok).toBe(false);
+          done();
+        });
+      }, done.fail);
+    });
+
+    it('ok when checking user with different groups', function (done) {
+      let groups = [ '1', '2', '3' ];
+      let user = 'someuser@domain.com';
+
+      let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
+
+      let p_userInsertion = p_userCollection.then(function(collection) {
+        return collection.insertOne({
+          user:   user,
+          groups: groups });
+      });
+
+      p_userInsertion.then(function() {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/checkUser`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
+          },
+          body: JSON.stringify({
+            groups: groups,
+            user:   user
+          })
+        }, (err, res, body) => {
+          expect(res.statusCode).toBe(200);
+          let jbody = JSON.parse(body);
+          expect(jbody.ok).toBe(true);
+          done();
+        });
+      }, done.fail);
+    });
   });
 
   it('creates a token and checks it', function (done) {
@@ -180,7 +174,7 @@ describe('token man', function () {
     };
     let user = 'someuser@domain.com';
 
-    let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
+    let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
 
     let p_userInsertion = p_userCollection.then(function(collection) {
       return collection.insertOne({

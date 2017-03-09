@@ -93,9 +93,24 @@ let create_certificates = (path, ca_prefix, cert1_prefix, cert2_prefix, callback
   });
 };
 
+function getCollection(collName) {
+  return function(db) {
+    return new Promise(function(resolve, reject) {
+      db.collection(collName, function(err, collection) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(collection);
+        }
+      });
+    });
+  };
+}
+
 module.exports = {
   create_certificates,
-  create_self_signed_cert
+  create_self_signed_cert,
+  getCollection
 };
 
 if ( !module.parent ) {

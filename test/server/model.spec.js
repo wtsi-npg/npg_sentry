@@ -22,19 +22,7 @@ let p_db;
 let tmpobj;
 let tmpdir;
 
-function getCollection(collName) {
-  return function(db) {
-    return new Promise(function(resolve, reject) {
-      db.collection(collName, function(err, collection) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(collection);
-        }
-      });
-    });
-  };
-}
+let getCollection = require('./test_utils').getCollection;
 
 describe('model', function() {
 
