@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use English qw(-no_match_vars);
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
@@ -12,7 +11,6 @@ use List::MoreUtils qw(uniq);
 use Log::Log4perl;
 use Log::Log4perl::Level;
 use MongoDB;
-use Readonly;
 use JSON;
 use WTSI::DNAP::Utilities::LDAP;
 
@@ -69,12 +67,8 @@ Options:
   --dry-run     Report proposed changes, do not perform them. Optional.
   --dry_run
   --eml         Email address to append to usernames
-  --group-min   Minumum number of "getent group" records to expect [200]
-  --group_min
   --help        Display help.
   --logconf     A log4perl configuration file. Optional.
-  --passwd-min  Minumum number of "getent passwd" records to expect [5000]
-  --passwd_min
   --study       Restrict updates to a study. May be used multiple times
                 to select more than one study. Optional.
                 Mutually exclusive with --user-first.
@@ -84,17 +78,12 @@ Options:
 
 WOE
 
-Readonly::Scalar my $GETENT_GROUP_ALERT_THRESH  => 200;
-Readonly::Scalar my $GETENT_PASSWD_ALERT_THRESH => 5000;
-
 my $dbname = 'sentry.users';
 my $dburl;
 my $debug;
 my $dry_run;
 my $eml = '';
-my $group_min_record_count = $GETENT_GROUP_ALERT_THRESH;
 my $log4perl_config;
-my $passwd_min_record_count = $GETENT_PASSWD_ALERT_THRESH;
 my $userfirst;
 my $verbose;
 my @studies;
@@ -104,13 +93,11 @@ GetOptions('db-name=s'               => \$dbname,
            'debug'                   => \$debug,
            'dry-run|dry_run'         => \$dry_run,
            'eml=s'                   => \$eml,
-           'group-min|group_min=i'   => \$group_min_record_count,
            'help'                    => sub {
              print $what_on_earth;
              exit 0;
            },
            'logconf=s'               => \$log4perl_config,
-           'passwd-min|passwd_min=i' => \$passwd_min_record_count,
            'study=s'                 => \@studies,
            'user-first'              => \$userfirst,
            'verbose'                 => \$verbose) or die "\n$what_on_earth\n";
@@ -189,7 +176,7 @@ else {
 
 my %user2groups;
 
-my ($group_count, $altered_count) = (0, 0);
+my $group_count = 0;
 while (my $study = $rs->next){
   my $study_id = $study->internal_id;
   my $dag_str  = $study->data_access_group || q();
@@ -240,28 +227,23 @@ if ( $userfirst ) {
     if ( $dburl ) {
       if ( exists( $user2groups{$uname} ) ) {
         print to_json(
-          #{user=>$uname.$eml, groups=>$user2groups{$uname}, current=>JSON::true, last_modified=>''.$today}
-          {user=>$uname.$eml, groups=>$user2groups{$uname}}
+          {user=>$uname.$eml, groups=>$user2groups{$uname}, current=>JSON::true, last_modified=>''.$today}
         )."\n";
       }
       else {
         # User was in db previously, but not in new list of users.
         # Remove user from all groups, set current to false.
         print to_json(
-          #{user=>$uname.$eml, groups=>[], current=>JSON::false, last_modified=>''.$today}
-          {user=>$uname.$eml, groups=>[]}
+          {user=>$uname.$eml, groups=>[], current=>JSON::false, last_modified=>''.$today}
         )."\n";
       }
     }
     else {
       print to_json(
-        #{user=>$uname.$eml, groups=>$user2groups{$uname}, last_modified=>$today}
-        {user=>$uname.$eml, groups=>$user2groups{$uname}}
+        {user=>$uname.$eml, groups=>$user2groups{$uname}, last_modified=>$today}
       )."\n";
     }
   }
 }
-
-#$log->debug("Altered $altered_count groups");
 
 $log->info("Considered $group_count Sequencescape studies");
