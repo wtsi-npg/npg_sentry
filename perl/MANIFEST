@@ -1,3 +1,6 @@
 bin/access_control_groups.pl
 Build.PL
 MANIFEST			This list of files
+t/00-compile.t
+t/00-critic.t
+t/perlcriticrc
