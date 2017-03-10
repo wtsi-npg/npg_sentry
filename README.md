@@ -21,7 +21,7 @@ OR use pm2 to run server as a daemonised cluster:
 
 ```
 $ npm i -g pm2
-$ pm2 start app.js -i <number of processes> -- <arguments to pass to server>
+$ pm2 start npg_sentry.js -i <number of processes> -- <arguments to pass to server>
 $ # stop the server
 $ pm2 stop app
 $ # reload the server

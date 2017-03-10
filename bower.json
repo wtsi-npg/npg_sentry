@@ -1,7 +1,6 @@
 {
   "name": "npg_sentry",
   "description": "Auth server for npg",
-  "main": "app.js",
   "authors": [
     "@aacn500"
   ],

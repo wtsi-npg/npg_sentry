@@ -1,2 +1,6 @@
 
+ - use random db port for tests
+ - format for npm deployment
+ - split controller setup into module
+ - renaming app.js to npg_sentry.js
  - adding linting and tests
