@@ -16,7 +16,7 @@ use WTSI::DNAP::Utilities::LDAP;
 
 use npg_warehouse::Schema;
 
-our $VERSION = '2.0.3';
+our $VERSION = '0';
 
 my $embedded_conf = << 'LOGCONF';
    log4perl.logger.npg.acls = ERROR, A1

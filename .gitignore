@@ -5,3 +5,7 @@ data/
 coverage
 *.swp
 *.min.*
+Build
+_build/
+MYMETA.json
+MYMETA.yml
