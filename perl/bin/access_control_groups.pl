@@ -82,7 +82,7 @@ my $dbname = 'sentry.users';
 my $dburl;
 my $debug;
 my $dry_run;
-my $eml = '';
+my $eml = q{};
 my $log4perl_config;
 my $userfirst;
 my $verbose;
@@ -118,15 +118,19 @@ if ($debug) {
 }
 
 if (@studies && $userfirst) {
-  $log->logcroak("Options --study and --user-first are mutually exclusive!");
+  $log->logcroak(q{Options --study and --user-first are mutually exclusive!});
 }
 
 my @old_users;
 if ($dburl && $userfirst) {
   my $client = MongoDB->connect($dburl);
   my $users_coll = $client->ns($dbname);
-  my $cursor = $users_coll->find({"groups"   => {'$all' => \@studies}},
+
+  ##no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+  my $cursor = $users_coll->find({q{groups}  => {q{$all} => \@studies}},
                                  {projection => {user => 1}});
+  ##use critic
+
   while (my $doc = $cursor->next) {
     push @old_users, $doc->{'user'};
   }
@@ -145,15 +149,18 @@ foreach my $group ( keys %{ $group2users } ) {
 @public = uniq @public;
 
 my @dnap_members;
-for (split /^/, qx/igroupadmin lg dnap_ro/) {
+##no critic (InputOutput::ProhibitBacktickOperators)
+for (split /^/smx, qx/igroupadmin lg dnap_ro/) {
+##use critic
   chomp;
-  next if (not $_ =~ /#/);
-  $_ =~ s/#.*$//;
-  push @dnap_members, $_;
+  my $admin_uname = $_;
+  next if (not $admin_uname =~ /#/smx);
+  $admin_uname =~ s/#.*$//smx;
+  push @dnap_members, $admin_uname;
 }
 
-$log->info("The public group has ", scalar @public, ' members');
-$log->debug("public group membership: ", join q(, ), @public);
+$log->info(q{The public group has }, scalar @public, q{ members});
+$log->debug(q{public group membership: }, join q(, ), @public);
 
 my %public_hash = map { $_ => 1 } @public;
 sub _uid_to_irods_uid {
@@ -183,7 +190,7 @@ while (my $study = $rs->next){
   my $is_seq   = $study->npg_information->count ||
                  $study->npg_plex_information->count;
 
-  $log->debug("Working on study $study_id, SScape data access: '$dag_str'");
+  $log->debug(qq{Working on study $study_id, SScape data access: '$dag_str'});
 
   my @members;
   my @dags = $dag_str =~ m/\S+/smxg;
@@ -201,8 +208,8 @@ while (my $study = $rs->next){
   }
   push @members, @dnap_members;
 
-  $log->info("Study $study_id has ", scalar @members, ' members');
-  $log->debug('Members: ', join q(, ), @members);
+  $log->info(qq{Study $study_id has }, scalar @members, q{ members});
+  $log->debug(q{Members: }, join q(, ), @members);
 
   if (! $userfirst ) {
     @members = map {$_ . $eml} @members;
@@ -221,20 +228,20 @@ while (my $study = $rs->next){
 if ( $userfirst ) {
   my @merged = uniq (keys %user2groups, @old_users);
 
-  my $today = DateTime->now(time_zone => 'UTC');
+  my $today = DateTime->now(time_zone => 'UTC')->datetime;
 
   foreach my $uname ( @merged ) {
     if ( $dburl ) {
-      if ( exists( $user2groups{$uname} ) ) {
+      if ( exists $user2groups{$uname} ) {
         print to_json(
-          {user=>$uname.$eml, groups=>$user2groups{$uname}, current=>JSON::true, last_modified=>''.$today}
+          {user=>$uname.$eml, groups=>$user2groups{$uname}, current=>JSON::true, last_modified=>$today}
         )."\n";
       }
       else {
         # User was in db previously, but not in new list of users.
         # Remove user from all groups, set current to false.
         print to_json(
-          {user=>$uname.$eml, groups=>[], current=>JSON::false, last_modified=>''.$today}
+          {user=>$uname.$eml, groups=>[], current=>JSON::false, last_modified=>$today}
         )."\n";
       }
     }
