@@ -29,32 +29,29 @@ LOGCONF
 
 my $what_on_earth =<<'WOE';
 
-Script to update WTSI iRODS systems with groups corresponding to
-Sequencescape studies.
+Script to generate mappings between Sequencescape studies and
+Sanger users (or vice versa).
 
-Appropriate iRODS environment variables (e.g. irodsEnvFile) and files
-should be set and configured to allow access and update of the desired
-iRODS system.
+Requires ability to contact the Sanger LDAP server and the
+Sequencescape warehouse database, and to get valid output from
+running `igroupadmin lg dnap_ro`.
 
 The Sequencescape warehouse database is used to find the set of
-studies. iRODS groups are created for each study with names of the
-format ss_<study_id> when they do not already exist.
+studies. An access group is created for each study with name matching
+the study id.
 
-The iRODS zone is taken to have a pre-existing "public" group which is
-used to identify all available users.
+A "public" group is formed from the union of the member lists of all
+unix groups.
 
 If a Sequencescape study has an entry for the "data_access_group" then
 the intersection of the members of the corresponding WTSI unix group
-and iRODS public group is used as the membership of the corresponding
-iRODS group.
+and public group is used as the membership of the corresponding group.
 
 If no data_access_group is set on the study, then if the study is
-associated with sequencing the members of the iRODS group will be set
+associated with sequencing the members of the access group will be set
 to the public group, else if the study is not associated with
-sequencing the iRODS group will be left empty (except for the iRODS
-groupadmin user).
-
-Script runs to perform such updates when no arguments are given.
+sequencing the access group will be left empty (except for members of
+the dnap_ro iRODS group).
 
 Options:
 
@@ -64,8 +61,6 @@ Options:
                 no longer appear will be marked as such. No effect unless
                 --user-first is set.
   --debug       Enable debug level logging. Optional, defaults to false.
-  --dry-run     Report proposed changes, do not perform them. Optional.
-  --dry_run
   --eml         Email address to append to usernames
   --help        Display help.
   --logconf     A log4perl configuration file. Optional.
@@ -81,7 +76,6 @@ WOE
 my $dbname = 'sentry.users';
 my $dburl;
 my $debug;
-my $dry_run;
 my $eml = q{};
 my $log4perl_config;
 my $userfirst;
@@ -91,7 +85,6 @@ my @studies;
 GetOptions('db-name=s'               => \$dbname,
            'db-url=s'                => \$dburl,
            'debug'                   => \$debug,
-           'dry-run|dry_run'         => \$dry_run,
            'eml=s'                   => \$eml,
            'help'                    => sub {
              print $what_on_earth;
