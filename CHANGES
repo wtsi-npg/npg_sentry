@@ -1,4 +1,5 @@
 
+ - move perl script to generate db to github
  - more debug level logging messages
  - use random db port for tests
  - format for npm deployment
