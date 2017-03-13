@@ -65,6 +65,7 @@
     "grunt-jasmine-node-coverage": "1.1.x",
     "grunt-newer": "1.2.x",
     "load-grunt-tasks": "3.5.x",
+    "pem":              "1.9.4",
     "tmp": "0.0.31"
   }
 }
