@@ -51,6 +51,19 @@ afterAll(function(done) {
   });
 });
 
+let insertUser = (p_db, user, groups) => {
+  let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
+
+  let p_userInsertion = p_userCollection.then(function(collection) {
+    return collection.insertOne({
+      user:   user,
+      groups: groups
+    });
+  });
+
+  return p_userInsertion;
+};
+
 describe('authorisation', function () {
   let server;
 
@@ -84,42 +97,35 @@ describe('authorisation', function () {
     });
 
     it('rejects when checking unknown user', function (done) {
-      request.post({
-        url: `http://localhost:${SERVER_PORT}/checkUser`,
-        headers: {
-          "content-type": 'application/json',
-          "x-remote-user": 'someuser@domain.com'
-        },
-        body: JSON.stringify({
-          groups: ['1', '2', '3'],
-          user:   'someuser@domain.com'
-        })
-      }, (err, res) => {
-        if(err){
-          done.fail();
-        }
-        expect(res.statusCode).not.toBe(200);
-        done();
+      let groups = ['1', '2', '3'];
+      insertUser(p_db, 'someuser@domain.com', groups).then( () => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/checkUser`,
+          headers: {
+            "content-type":  'application/json',
+            "x-remote-user": 'someotheruser@domain.com'
+          },
+          body: JSON.stringify({
+            groups: groups,
+            user:   'someotheruser@domain.com'
+          })
+        }, (err, res) => {
+          if(err){
+            done.fail();
+          }
+          expect(res.statusCode).not.toBe(200);
+          done();
+        });
       });
     });
 
     it('rejects when checking user with different groups', function (done) {
-      let groups = [ '1', '2' ];
       let user = 'someuser@domain.com';
-
-      let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
-
-      let p_userInsertion = p_userCollection.then(function(collection) {
-        return collection.insertOne({
-          user:   user,
-          groups: groups });
-      });
-
-      p_userInsertion.then(function() {
+      insertUser(p_db, user, ['1', '2']).then( () => {
         request.post({
           url: `http://localhost:${SERVER_PORT}/checkUser`,
           headers: {
-            "content-type": 'application/json',
+            "content-type":  'application/json',
             "x-remote-user": user
           },
           body: JSON.stringify({
@@ -135,23 +141,14 @@ describe('authorisation', function () {
       }, done.fail);
     });
 
-    it('ok when checking user with different groups', function (done) {
-      let groups = [ '1', '2', '3' ];
-      let user = 'someuser@domain.com';
-
-      let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
-
-      let p_userInsertion = p_userCollection.then(function(collection) {
-        return collection.insertOne({
-          user:   user,
-          groups: groups });
-      });
-
-      p_userInsertion.then(function() {
+    it('ok when checking user with correct groups', function (done) {
+      let user   = 'someuser@domain.com';
+      let groups = ['1', '2', '3'];
+      insertUser(p_db, user, groups).then( () => {
         request.post({
           url: `http://localhost:${SERVER_PORT}/checkUser`,
           headers: {
-            "content-type": 'application/json',
+            "content-type":  'application/json',
             "x-remote-user": user
           },
           body: JSON.stringify({
@@ -173,16 +170,7 @@ describe('authorisation', function () {
       "groups": [ '1', '2', '3' ]
     };
     let user = 'someuser@domain.com';
-
-    let p_userCollection = p_db.then(utils.getCollection(constants.COLLECTION_USERS));
-
-    let p_userInsertion = p_userCollection.then(function(collection) {
-      return collection.insertOne({
-        user: user,
-        groups: postData.groups });
-    });
-
-    p_userInsertion.then(function() {
+    insertUser(p_db, user, postData.groups).then(function() {
       request.post({
         url: `http://localhost:${SERVER_PORT}/createToken`,
         headers: {
