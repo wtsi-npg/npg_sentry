@@ -75,7 +75,8 @@ describe('server', () => {
         return {
           mongourl: `mongodb://localhost:${DB_PORT}/test`,
           port: SERVER_PORT,
-          loglevel: "debug"
+          loglevel: "debug",
+          'no-ssl': true
         };
       });
       server = require('../../npg_sentry');
