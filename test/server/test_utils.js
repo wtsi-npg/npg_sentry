@@ -60,6 +60,10 @@ let create_certificates = (path, ca_prefix, cert1_prefix, cert2_prefix, callback
   });
 };
 
+module.exports = {
+  create_certificates: create_certificates
+};
+
 
 if ( !module.parent ) {
   create_certificates('./', 'CA', 'cert1', 'cert2', (error) => {
