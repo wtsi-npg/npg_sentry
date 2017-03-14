@@ -51,6 +51,7 @@ if (opts.get('no-ssl')) {
     requestCert: true,
     rejectUnauthorized: true,
   };
+  logger.info('Running on HTTPS');
   let passphrase = opts.get('sslpassphrase');
   if (passphrase) {
     httpsopts.passphrase = passphrase;
@@ -95,6 +96,8 @@ app.use(function(err, req, res, next) {
     err: 'Internal server error'
   });
 });
+
+logger.debug('All routing and middleware registered');
 
 serv.listen(port);
 logger.info(`npg_sentry started on port ${port}`);
