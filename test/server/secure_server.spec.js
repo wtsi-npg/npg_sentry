@@ -9,7 +9,6 @@ const MongoClient = require('mongodb').MongoClient;
 const tmp = require('tmp');
 
 const test_utils = require('./test_utils.js');
-const constants = require('../../lib/constants');
 let config = require('../../lib/config');
 
 let BASE_PORT  = 9000;
@@ -50,20 +49,35 @@ describe('secure server', function() {
         }
       );
     });
-    Promise.all([p_db, p_certs]).catch(fail).then(function() {
-      config.provide(() => {
-        console.log('server config set');
-        return {
-          mongourl: `mongodb://localhost:${PORT}/test`,
-          sslca: tmpdir + '/certs/CA.cert',
-          sslkey: tmpdir + '/certs/server.key',
-          sslcert: tmpdir + '/certs/server.cert',
-          port: SERVER_PORT,
-          loglevel: 'debug',
-        };
-      });
-      done();
+    let p_self_signed_cert = new Promise(function(resolve, reject) {
+      test_utils.create_self_signed_cert(
+        `${tmpdir}/certs`,
+        'selfsigned',
+        (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+      );
     });
+    Promise.all([p_db, p_certs, p_self_signed_cert])
+      .catch(fail)
+      .then(function() {
+        config.provide(() => {
+          console.log('server config set');
+          return {
+            mongourl: `mongodb://localhost:${PORT}/test`,
+            sslca: tmpdir + '/certs/CA.cert',
+            sslkey: tmpdir + '/certs/server.key',
+            sslcert: tmpdir + '/certs/server.cert',
+            port: SERVER_PORT,
+            loglevel: 'debug',
+          };
+        });
+        done();
+      });
   }, 25000);
 
   afterAll(function(done) {
@@ -120,12 +134,26 @@ describe('secure server', function() {
         done();
       });
       req.once('error', done.fail);
-      req.setHeader(constants.USER_ID_HEADER, 'user@example.com');
       req.end();
     });
 
-    // TODO this
-    it('Connection fails with selfsigned cert');
+    it('Connection fails with selfsigned cert', function(done) {
+      let req = https.request({
+        hostname: 'localhost',
+        port: SERVER_PORT,
+        ca: fse.readFileSync(tmpdir + '/certs/CA.cert'),
+        key: fse.readFileSync(tmpdir + '/certs/selfsigned.key'),
+        cert: fse.readFileSync(tmpdir + '/certs/selfsigned.cert'),
+      }, () => {
+        done.fail();
+      });
+      req.once('error', (err) => {
+        expect(err).toMatch(/socket hang up/i);
+        expect(err.code).toMatch(/ECONNRESET/i);
+        done();
+      });
+      req.end();
+    });
   });
 
 });
