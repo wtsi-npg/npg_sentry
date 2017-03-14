@@ -1,6 +1,7 @@
 'use strict';
 
 const child = require('child_process');
+const http  = require('http');
 
 const decache     = require('decache');
 // const moment = require('moment');
@@ -163,50 +164,139 @@ describe('authorisation', function () {
         });
       }, done.fail);
     });
-  });
+  });;
 
-  it('creates a token and checks it', function (done) {
-    let postData = {
-      "groups": [ '1', '2', '3' ]
-    };
-    let user = 'someuser@domain.com';
-    insertUser(p_db, user, postData.groups).then(function() {
+  describe('token management', () => {
+    beforeEach(function(done) {
+      child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+      done();
+    });
+
+    it('creates a token and checks it', function (done) {
+      let postData = {
+        "groups": [ '1', '2', '3' ]
+      };
+      let user = 'someuser@domain.com';
+      insertUser(p_db, user, postData.groups).then(function() {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/createToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
+          },
+        }, (err, res, body) => {
+            if(err){
+              done.fail(err);
+            }
+
+            expect(res.statusCode).toBe(200);
+            console.log(body);
+            let jbody = JSON.parse(body);
+
+            expect(jbody.token).toBeDefined();
+            expect(jbody.user).toBe(user);
+            postData.token = jbody.token;
+
+            request.post({
+              url: `http://localhost:${SERVER_PORT}/checkToken`,
+              headers: {
+                "content-type": 'application/json',
+                "x-remote-user": user
+              },
+              body: JSON.stringify(postData)
+            }, (err2, res2, body2) => {
+                if(err2){
+                  done.fail(err2);
+                }
+                expect(res2.statusCode).toBe(200);
+                let jbody2 = JSON.parse(body2);
+                expect(jbody2.ok).toBe(true);
+                done();
+            });
+        });
+      }, done.fail);
+    });
+
+    it('test revoke returns error when non json req', (done) => {
       request.post({
-        url: `http://localhost:${SERVER_PORT}/createToken`,
+        url: `http://localhost:${SERVER_PORT}/revokeToken`,
         headers: {
           "content-type": 'application/json',
-          "x-remote-user": user
+          "x-remote-user": 'someuser@domain.com'
         },
+        body: '{'
       }, (err, res, body) => {
-          if(err){
-            done.fail(err);
-          }
-
-          expect(res.statusCode).toBe(200);
-          console.log(body);
-          let jbody = JSON.parse(body);
-
-          expect(jbody.token).toBeDefined();
-          expect(jbody.user).toBe(user);
-          postData.token = jbody.token;
-
-          request.post({
-            url: `http://localhost:${SERVER_PORT}/checkToken`,
-            headers: {
-              "content-type": 'application/json',
-              "x-remote-user": user
-            },
-            body: JSON.stringify(postData)
-          }, (err2, res2, body2) => {
-              if(err2){
-                done.fail(err2);
-              }
-              expect(res2.statusCode).toBe(200);
-              let jbody2 = JSON.parse(body2);
-              expect(jbody2.ok).toBe(true);
-              done();
-          });
+        if(err){
+          done.fail(err);
+        }
+        expect(res.statusCode).toBe(400);
+        expect(body).toMatch(http.STATUS_CODES[400]);
+        done();
       });
-    }, done.fail);
+    });
+
+    it('tests for a revoked token', (done) => {
+      let user   = 'someuser@domain.com';
+      let groups = [ '1', '2' ];
+
+      insertUser(p_db, user, groups).then( () => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/createToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
+          },
+        }, (err, res, body) => {
+            if(err){
+              done.fail(err);
+            }
+
+            expect(res.statusCode).toBe(200);
+            console.log(body);
+            let jbody = JSON.parse(body);
+
+            expect(jbody.token).toBeDefined();
+            expect(jbody.user).toBe(user);
+            let postData = {
+              token:  jbody.token,
+              groups: groups
+            };
+
+            request.post({
+              url: `http://localhost:${SERVER_PORT}/revokeToken`,
+              headers: {
+                "content-type": 'application/json',
+                "x-remote-user": user
+              },
+              body: JSON.stringify(postData)
+            }, (err2, res2, body2) => {
+                if(err2){
+                  done.fail(err2);
+                }
+                expect(res2.statusCode).toBe(200);
+                let jbody2 = JSON.parse(body2);
+                expect(jbody2.token).toBe(jbody.token);
+                expect(jbody2.status).toBe(constants.TOKEN_STATUS_REVOKED);
+
+                request.post({
+                  url: `http://localhost:${SERVER_PORT}/checkToken`,
+                  headers: {
+                    "content-type": 'application/json',
+                    "x-remote-user": user
+                  },
+                  body: JSON.stringify(postData)
+                }, (err3, res3, body3) => {
+                    if(err3){
+                      done.fail(err3);
+                    }
+                    expect(res3.statusCode).toBe(200);
+                    let jbody3 = JSON.parse(body3);
+                    expect(jbody3.ok).toBe(false);
+                    done();
+                });
+            });
+        });
+      }, done.fail);
+    });
   });
 });

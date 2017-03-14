@@ -93,7 +93,7 @@ let create_certificates = (path, ca_prefix, cert1_prefix, cert2_prefix, callback
   });
 };
 
-function getCollection(collName) {
+let getCollection = (collName) => {
   return function(db) {
     return new Promise(function(resolve, reject) {
       db.collection(collName, function(err, collection) {
@@ -105,7 +105,7 @@ function getCollection(collName) {
       });
     });
   };
-}
+};
 
 module.exports = {
   create_certificates,

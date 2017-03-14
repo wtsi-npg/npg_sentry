@@ -89,11 +89,15 @@ app.use(function(req, res) {
 /* eslint-disable no-unused-vars */
 app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
+  let statusCode = err.statusCode || 500;
+  let errorMessage = 'Unknown error';
+  if ( http.STATUS_CODES[statusCode] ) {
+    errorMessage = http.STATUS_CODES[statusCode];
+  }
   logger.error(err);
-  let statusCode = 500;
   res.status(statusCode).json({
     status: statusCode,
-    err: 'Internal server error'
+    err:    errorMessage
   });
 });
 
