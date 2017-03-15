@@ -26,6 +26,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const helmet = require('helmet');
 
+const admin_controller         = require('./lib/admin_controller');
 const authorisation_controller = require('./lib/authorisation_controller');
 
 const port = opts.get('port');
@@ -70,6 +71,10 @@ app.use(logger.connectLogger(logger, { level: 'auto' }));
 
 app.use(bodyParser.json());
 
+let acl = require('./lib/acl_mid').get();
+console.log('>>>>> THERE');
+
+admin_controller.setup(app, acl);
 authorisation_controller.setup(app);
 
 app.use(express.static(path.join(__dirname, 'sentry/public')));

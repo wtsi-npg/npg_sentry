@@ -4,7 +4,6 @@ const child = require('child_process');
 const http  = require('http');
 
 const decache     = require('decache');
-// const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const fse         = require('fs-extra');
 const request     = require('request');
