@@ -14,6 +14,8 @@ let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
 const constants = require('../../lib/constants');
 let config = require('../../lib/config');
+
+let dbConn;
 let model;
 
 let p_db;
@@ -28,6 +30,7 @@ describe('model', function() {
     // setup a mongo instance
     config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
     model = require('../../lib/model');
+    dbConn = require('../../lib/db_conn');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
     let command =
@@ -56,9 +59,9 @@ describe('model', function() {
 
   describe('DbError', function() {
     it('is a subclass of Error', function() {
-      let err = new model.DbError('something bad');
+      let err = new dbConn.DbError('something bad');
       expect(err.name).toBe('DbError');
-      expect(err instanceof model.DbError).toBe(true);
+      expect(err instanceof dbConn.DbError).toBe(true);
       expect(err instanceof Error).toBe(true);
       expect(require('util').isError(err)).toBe(true);
       expect(err.stack).toBeDefined();
@@ -69,14 +72,18 @@ describe('model', function() {
   describe('mongo connection error', function() {
     beforeAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://invalid:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     afterAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     it('is raised', function(done) {
@@ -306,7 +313,7 @@ describe('model', function() {
         p_revoke.then(function() {
           fail('Unexpectedly revoked token but token should not exist');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
@@ -467,7 +474,7 @@ describe('model', function() {
         model.checkUser(reqdGroups, user).then(function() {
           fail();
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(constants.UNEXPECTED_NUM_DOCS);
         }).then(done, done.fail);
       });
@@ -621,7 +628,7 @@ describe('model', function() {
         p_result.then(function() {
           fail();
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
