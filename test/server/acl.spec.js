@@ -86,6 +86,22 @@ describe('acls', () => {
         expect(res.statusCode).toBe(403);
         done();
       });
+    }, 10000);
+
+    it('gets a 200', (done) => {
+      request.get({
+        url: `http://localhost:${SERVER_PORT}/admin`,
+        headers: {
+          "content-type":  'application/json',
+          "x-remote-user": 'someuser@domain.com'
+        },
+      }, (err, res) => {
+        if(err){
+          done.fail();
+        }
+        expect(res.statusCode).toBe(200);
+        done();
+      });
     });
   });
 });

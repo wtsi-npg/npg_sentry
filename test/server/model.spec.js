@@ -14,9 +14,7 @@ let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
 const constants = require('../../lib/constants');
 let config = require('../../lib/config');
-
-config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
-let model = require('../../lib/model');
+let model;
 
 let p_db;
 let tmpobj;
@@ -28,6 +26,8 @@ describe('model', function() {
 
   beforeAll(function(done) {
     // setup a mongo instance
+    config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
+    model = require('../../lib/model');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
     let command =

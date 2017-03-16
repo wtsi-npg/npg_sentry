@@ -71,15 +71,16 @@ app.use(logger.connectLogger(logger, { level: 'auto' }));
 
 app.use(bodyParser.json());
 
-let acl = require('./lib/acl_mid').get();
-console.log('>>>>> THERE');
+// if (opts.get('do-acls')) {
+admin_controller.setup(app);
+// }
 
-admin_controller.setup(app, acl);
 authorisation_controller.setup(app);
 
 app.use(express.static(path.join(__dirname, 'sentry/public')));
 
 app.use(function(req, res) {
+logger.debug('>>>>> THERE ');
   let statusCode = 404;
   res.status(statusCode)
      .render(path.join(__dirname, 'sentry/views', 'error'), {
@@ -105,7 +106,6 @@ app.use(function(err, req, res, next) {
     err:    errorMessage
   });
 });
-
 logger.debug('All routing and middleware registered');
 
 serv.listen(port);
