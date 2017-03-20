@@ -77,6 +77,10 @@ admin_controller.setup(app);
 
 authorisation_controller.setup(app);
 
+app.get('/', function(req, res) {
+  res.render(path.join(__dirname, 'sentry/views', 'index'));
+});
+
 app.use(express.static(path.join(__dirname, 'sentry/public')));
 
 app.use(function(req, res) {

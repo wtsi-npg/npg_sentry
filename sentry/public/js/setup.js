@@ -13,25 +13,6 @@ define(['jquery', 'clipboard', 'sentrylib'], function($, Clipboard, sentrylib) {
       $floatdiv.toggle(false);
     });
 
-    $('#admin-create-token-button').on('click', function() {
-      var user = $('#target-user').val();
-      console.log(user);
-      $.post({
-        url: 'admin/createToken',
-        contentType: 'application/json',
-        data: '{"user": "' + user + '"}',
-        success: function(data) {
-          var $th = $('#table-headers');
-          var $row = sentrylib.generateTokenRow($('<tr></tr>'), data);
-          $th.after($row);
-        },
-        error: function(jqXHR) {
-          sentrylib.showErrorMsg(
-            'Error when submitting token request: ' + jqXHR.status + ': ' + jqXHR.statusText);
-        }
-      });
-    });
-
     $('#create-token-button').on('click', function() {
       $.post({
         url: 'createToken',
