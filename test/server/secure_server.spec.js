@@ -3,18 +3,18 @@
 const child = require('child_process');
 const https = require('https');
 
-const decache = require('decache');
-const fse = require('fs-extra');
+const decache     = require('decache');
+const fse         = require('fs-extra');
 const MongoClient = require('mongodb').MongoClient;
-const tmp = require('tmp');
+const tmp         = require('tmp');
 
 const test_utils = require('./test_utils.js');
-let config = require('../../lib/config');
+let config       = require('../../lib/config');
 
-let BASE_PORT  = 9000;
-let PORT_RANGE = 200;
-let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
-let SERVER_PORT = PORT + 1;
+let BASE_PORT   = 9000;
+let PORT_RANGE  = 200;
+let DB_PORT     = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
+let SERVER_PORT = DB_PORT + 1;
 
 let p_db;
 let tmpobj;
@@ -27,13 +27,13 @@ describe('secure server', function() {
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
     let command =
-      `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
+      `mongod --port ${DB_PORT} --fork --dbpath ${tmpdir} ` +
       `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
     console.log(`\nStarting MongoDB daemon: ${command}`);
     let out = child.execSync(command);
     console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
-    p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
+    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${DB_PORT}`);
+    p_db = MongoClient.connect(`mongodb://localhost:${DB_PORT}/test`);
     let p_certs = new Promise(function(resolve, reject) {
       test_utils.create_certificates(
         `${tmpdir}/certs`,
@@ -68,7 +68,7 @@ describe('secure server', function() {
         config.provide(() => {
           console.log('server config set');
           return {
-            mongourl: `mongodb://localhost:${PORT}/test`,
+            mongourl: `mongodb://localhost:${DB_PORT}/test`,
             sslca: tmpdir + '/certs/CA.cert',
             sslkey: tmpdir + '/certs/server.key',
             sslcert: tmpdir + '/certs/server.cert',
@@ -82,7 +82,7 @@ describe('secure server', function() {
 
   afterAll(function(done) {
     child.execSync(
-      `mongo 'mongodb://localhost:${PORT}/admin' --eval 'db.shutdownServer()'`
+      `mongo 'mongodb://localhost:${DB_PORT}/admin' --eval 'db.shutdownServer()'`
     );
     console.log('\nMongoDB daemon has been switched off');
     fse.remove(tmpdir, function(err) {
