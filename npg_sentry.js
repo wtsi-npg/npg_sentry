@@ -16,6 +16,7 @@ if ( module.parent ) {
 }
 const logger = require('./lib/logger');
 
+const assert = require('assert');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -32,7 +33,11 @@ const port = opts.get('port');
 const app = express();
 let serv;
 
-if (opts.get('ssl')) {
+if (opts.get('no-ssl')) {
+  serv = http.createServer(app);
+} else {
+  assert(opts.get('sslca') && opts.get('sslkey') && opts.get('sslcert'));
+  let ca = opts.get('sslca');
   let key = opts.get('sslkey');
   let cert = opts.get('sslcert');
   if (!(key && cert)) {
@@ -40,8 +45,11 @@ if (opts.get('ssl')) {
      'certificate to be defined');
   }
   let httpsopts = {
+    ca: fs.readFileSync(ca),
     key: fs.readFileSync(key),
     cert: fs.readFileSync(cert),
+    requestCert: true,
+    rejectUnauthorized: true,
   };
   logger.info('Running on HTTPS');
   let passphrase = opts.get('sslpassphrase');
@@ -50,8 +58,6 @@ if (opts.get('ssl')) {
   }
 
   serv = https.createServer(httpsopts, app);
-} else {
-  serv = http.createServer(app);
 }
 
 app.use(helmet({

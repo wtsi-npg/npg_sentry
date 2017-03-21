@@ -1,4 +1,8 @@
 
+ - ssl defaults to on
+ - new option --sslca
+ - clients must present a valid certificate, signed by passed CA
+ - add pem as dev dep
  - more debug level logging messages
  - use random db port for tests
  - format for npm deployment
