@@ -224,6 +224,7 @@ sub main {
   my %user2groups;
   my $group_count = 0;
 
+  my @dnap_members = _dnap_members();
   while (my $study = $rs->next) {
     my $study_id = $study->internal_id;
     my $dag_str  = $study->data_access_group || q();
@@ -244,7 +245,7 @@ sub main {
     } else {
       # remains empty
     }
-    push @members, _dnap_members();
+    push @members, @dnap_members;
 
     $log->info(qq{Study $study_id has }, scalar @members, q{ members});
     $log->debug(q{Members: }, join q(, ), @members);
