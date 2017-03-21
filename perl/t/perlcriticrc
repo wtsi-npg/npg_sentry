@@ -1,5 +1,0 @@
-[-CodeLayout::RequireTidyCode]
-
-[-InputOutput::RequireCheckedSyscalls]
-
-[-Modules::ProhibitExcessMainComplexity]

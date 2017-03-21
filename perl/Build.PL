@@ -7,7 +7,7 @@ my $builder = WTSI::DNAP::Utilities::Build->new(
   'module_name'        => 'npg-sentry',
   'dist_author'        => 'NPG team at WTSI <npg@sanger.ac.uk>',
   'dist_version'       => WTSI::DNAP::Utilities::Build->report_version,
-  'dist_abstract'      => 'Sentry DB loading script',
+  'dist_abstract'      => 'Sentry DB perl utilities',
   'license'            => 'gpl',
   'configure_requires' => {
                             'Module::Build'         => '0.42',
@@ -18,14 +18,16 @@ my $builder = WTSI::DNAP::Utilities::Build->new(
                             'Test::Perl::Critic'    => '0'
                           },
   'requires'           => {
-                            'autodie'               => '2.26',
-                            'DateTime'              => '1.42',
+                            'Carp'                  => '0',
+                            'DateTime'              => '0',
+                            'DateTime::TimeZone'    => '0',
                             'Getopt::Long'          => '2.49.1',
                             'List::MoreUtils'       => '0.416',
                             'Log::Log4perl'         => '1.49',
                             'MongoDB'               => '1.6.1',
                             'JSON'                  => '2.61',
-                            'WTSI::DNAP::Utilities' => '0.5.4'
+                            'WTSI::DNAP::Utilities' => '0.5.4',
+                            'npg_warehouse::Schema' => '0',
                           }
 );
 

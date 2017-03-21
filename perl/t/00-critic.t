@@ -12,8 +12,8 @@ if ($@) {
 } else {
   Test::Perl::Critic->import(
                              -severity => 1,
-                             -profile => 't/perlcriticrc',
-                             -verbose => "%m at %f line %l, policy %p\n");
+                             -exclude  => ['tidy'],
+                             -verbose  => "%m at %f line %l, policy %p\n");
   all_critic_ok();
 }
 
