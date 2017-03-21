@@ -3,9 +3,17 @@
 const fse = require('fs-extra');
 const pem = require('pem');
 
-const KEY_EXT = 'key';
+const KEY_EXT  = 'key';
 const CERT_EXT = 'cert';
 
+/**
+ * Creates a self signed certificate and saves the certificate and its key to
+ * the path provided.
+ * @param  {[type]}   path        Where certificate and key files will be written
+ * @param  {[type]}   cert_prefix Prefix for the files
+ * @param  {Function} callback    Function to execute when process completes. will
+ * get an error as first parameter or null and a certificate object.
+ */
 let create_self_signed_cert = ( path, cert_prefix, callback) => {
   fse.ensureDirSync(path);
 
@@ -27,6 +35,18 @@ let create_self_signed_cert = ( path, cert_prefix, callback) => {
   });
 };
 
+/**
+ * Creates a simple certificate chain with a CA and two certificates signed by
+ * that CA. All certificates will be valid for one day. Two files will be
+ * generate per certificate, one for the certificate and one for the key.
+ * @param  {[type]}   path         Where certificate and key files will be written
+ * @param  {[type]}   ca_prefix    Prefix for the CA files
+ * @param  {[type]}   cert1_prefix Prefix for the first certificate files
+ * @param  {[type]}   cert2_prefix Prefix for the second certificate files
+ * @param  {Function} callback     Function to call after process finishes, will
+ * get an error if there was any, or null and three certificate objects if the
+ * process was successful.
+ */
 let create_certificates = (path, ca_prefix, cert1_prefix, cert2_prefix, callback) => {
   fse.ensureDirSync(path);
 
@@ -97,20 +117,3 @@ module.exports = {
   create_certificates,
   create_self_signed_cert
 };
-
-if ( !module.parent ) {
-  create_certificates('./', 'CA', 'cert1', 'cert2', (error) => {
-    if ( error ) {
-      console.err(`Failed: ${error}`);
-    } else {
-      console.log('finished certificate chain');
-    }
-  });
-  create_self_signed_cert('./', 'self_signed', (error) => {
-    if ( error ) {
-      console.err(`Failed: ${error}`);
-    } else {
-      console.log('finished self signed');
-    }
-  });
-}
