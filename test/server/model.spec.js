@@ -393,7 +393,7 @@ describe('model', function() {
     });
 
 
-    describe('checkUser', function() {
+    describe('validateUser', function() {
 
       it('succeeds', function(done) {
         let user = 'user@example.com';
@@ -405,7 +405,7 @@ describe('model', function() {
         });
 
         p_userInsertion.then(function() {
-          return model.checkUser(reqdGroups, user);
+          return model.validateUser(reqdGroups, user);
         }).then(function(result) {
           expect(result).toBe(true);
           done();
@@ -423,7 +423,7 @@ describe('model', function() {
         });
 
         p_userInsertion.then(function() {
-          return model.checkUser(reqdGroups, user);
+          return model.validateUser(reqdGroups, user);
         }).then(function(result) {
           expect(result).toBe(false);
           done();
@@ -433,28 +433,28 @@ describe('model', function() {
       it ('rejects with invalid parameters', function(done) {
         let ps = [];
 
-        ps.push(model.checkUser().then(function() {
-          return Promise.reject('Unexpectedly checked users but groups is not defined');
+        ps.push(model.validateUser().then(function() {
+          return Promise.reject('Unexpectedly validated users but groups is not defined');
         }, function (reason) {
-          expect(reason).toMatch(/checkUser: groups is not defined/i);
+          expect(reason).toMatch(/validateUser: groups is not defined/i);
         }));
 
-        ps.push(model.checkUser(1).then(function() {
-          return Promise.reject('Unexpectedly checked users but groups is not an Array');
+        ps.push(model.validateUser(1).then(function() {
+          return Promise.reject('Unexpectedly validated users but groups is not an Array');
         }, function (reason) {
-          expect(reason).toMatch(/checkUser: groups must be an Array/i);
+          expect(reason).toMatch(/validateUser: groups must be an Array/i);
         }));
 
-        ps.push(model.checkUser(['a_group']).then(function() {
-          return Promise.reject('Unexpectedly checked users but user is not defined');
+        ps.push(model.validateUser(['a_group']).then(function() {
+          return Promise.reject('Unexpectedly validated users but user is not defined');
         }, function (reason) {
-          expect(reason).toMatch(/checkUser: user is not defined/i);
+          expect(reason).toMatch(/validateUser: user is not defined/i);
         }));
 
-        ps.push(model.checkUser(['a_group'], 1).then(function() {
-          return Promise.reject('Unexpectedly checked users but user is not a string');
+        ps.push(model.validateUser(['a_group'], 1).then(function() {
+          return Promise.reject('Unexpectedly validated users but user is not a string');
         }, function (reason) {
-          expect(reason).toMatch(/checkUser: user must be a string/i);
+          expect(reason).toMatch(/validateUser: user must be a string/i);
         }));
 
         Promise.all(ps).then(done, done.fail);
@@ -464,7 +464,7 @@ describe('model', function() {
         let user = 'user@example.com';
         let reqdGroups = ['1', '5'];
 
-        model.checkUser(reqdGroups, user).then(function() {
+        model.validateUser(reqdGroups, user).then(function() {
           fail();
         }, function(reason) {
           expect(reason instanceof model.DbError).toBe(true);
@@ -483,7 +483,7 @@ describe('model', function() {
         });
 
         p_userInsertion.then(function() {
-          return model.checkUser(reqdGroups, user);
+          return model.validateUser(reqdGroups, user);
         }).then(function(result) {
           expect(result).toBe(false);
           done();
@@ -501,7 +501,7 @@ describe('model', function() {
         });
 
         p_userInsertion.then(function() {
-          return model.checkUser(reqdGroups, user);
+          return model.validateUser(reqdGroups, user);
         }).then(function(result) {
           expect(result).toBe(false);
           done();
@@ -509,7 +509,7 @@ describe('model', function() {
       });
     });
 
-    describe('checkToken', function() {
+    describe('validateToken', function() {
 
       it('succeeds', function(done) {
         let user = 'user@example.com';
@@ -533,7 +533,7 @@ describe('model', function() {
         let p_result =
           Promise.all([p_tokenInsertion, p_userInsertion])
           .then(function() {
-            return model.checkToken(reqdGroups, token);
+            return model.validateToken(reqdGroups, token);
           });
 
         p_result.then(function(result) {
@@ -564,7 +564,7 @@ describe('model', function() {
         let p_result =
           Promise.all([p_tokenInsertion, p_userInsertion])
           .then(function() {
-            return model.checkToken(reqdGroups, token);
+            return model.validateToken(reqdGroups, token);
           });
 
         p_result.then(function(result) {
@@ -576,28 +576,28 @@ describe('model', function() {
       it('rejects with invalid parameters', function(done) {
         let ps = [];
 
-        ps.push(model.checkToken().then(function() {
-          return Promise.reject('Unexpectedly checked tokens but groups is not defined');
+        ps.push(model.validateToken().then(function() {
+          return Promise.reject('Unexpectedly validated tokens but groups is not defined');
         }, function (reason) {
-          expect(reason).toMatch(/checkToken: groups is not defined/i);
+          expect(reason).toMatch(/validateToken: groups is not defined/i);
         }));
 
-        ps.push(model.checkToken(1).then(function() {
-          return Promise.reject('Unexpectedly checked tokens but groups is not an Array');
+        ps.push(model.validateToken(1).then(function() {
+          return Promise.reject('Unexpectedly validated tokens but groups is not an Array');
         }, function (reason) {
-          expect(reason).toMatch(/checkToken: groups must be an Array/i);
+          expect(reason).toMatch(/validateToken: groups must be an Array/i);
         }));
 
-        ps.push(model.checkToken(['a_group']).then(function() {
-          return Promise.reject('Unexpectedly checked tokens but token is not defined');
+        ps.push(model.validateToken(['a_group']).then(function() {
+          return Promise.reject('Unexpectedly validated tokens but token is not defined');
         }, function (reason) {
-          expect(reason).toMatch(/checkToken: token is not defined/i);
+          expect(reason).toMatch(/validateToken: token is not defined/i);
         }));
 
-        ps.push(model.checkToken(['a_group'], 1).then(function() {
-          return Promise.reject('Unexpectedly checked tokens but token is not a string');
+        ps.push(model.validateToken(['a_group'], 1).then(function() {
+          return Promise.reject('Unexpectedly validated tokens but token is not a string');
         }, function (reason) {
-          expect(reason).toMatch(/checkToken: token must be a string/i);
+          expect(reason).toMatch(/validateToken: token must be a string/i);
         }));
 
         Promise.all(ps).then(done, done.fail);
@@ -615,7 +615,7 @@ describe('model', function() {
         });
 
         let p_result = p_userInsertion.then(function() {
-          return model.checkToken(reqdGroups, token);
+          return model.validateToken(reqdGroups, token);
         });
 
         p_result.then(function() {
@@ -649,7 +649,7 @@ describe('model', function() {
 
         let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
           .then(function() {
-            return model.checkToken(reqdGroups, token);
+            return model.validateToken(reqdGroups, token);
           });
 
         p_result.then(function(result) {
@@ -680,7 +680,7 @@ describe('model', function() {
 
         let p_result = Promise.all([p_tokenInsertion, p_userInsertion])
           .then(function() {
-            return model.checkToken(reqdGroups, token);
+            return model.validateToken(reqdGroups, token);
           });
 
         p_result.then(function(result) {
