@@ -4,6 +4,7 @@ CHANGES
  - add acl as dep
  - add grunt-jsdoc@2.1.0 as dep
  - jsdocs added
+ - all changes to token stored in single array of updates
 
  release 0.3.0
  - upgrade body-parser to 1.17.1 from 1.17.0
