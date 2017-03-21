@@ -1,10 +1,27 @@
 "use strict";
 
-const fse = require('fs-extra');
-const pem = require('pem');
+const child = require('child_process');
+const fse   = require('fs-extra');
+const pem   = require('pem');
 
 const KEY_EXT = 'key';
 const CERT_EXT = 'cert';
+
+/**
+ * Start a temporary mongo database with tmpdir as root filesystem and listening
+ * in port
+ * @param  {String} tmpdir Path to use as system root for the DB
+ * @param  {number} port   Port where to listen
+ */
+let start_database = ( tmpdir, port ) => {
+  let command =
+    `mongod --port ${port} --fork --dbpath ${tmpdir} ` +
+    `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
+  console.log(`\nStarting MongoDB daemon: ${command}`);
+  let out = child.execSync(command);
+  console.log(`MongoDB daemon started: ${out}`);
+  child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${port}`);
+};
 
 let create_self_signed_cert = ( path, cert_prefix, callback) => {
   fse.ensureDirSync(path);
@@ -110,7 +127,8 @@ let getCollection = (collName) => {
 module.exports = {
   create_certificates,
   create_self_signed_cert,
-  getCollection
+  getCollection,
+  start_database
 };
 
 if ( !module.parent ) {

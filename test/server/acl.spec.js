@@ -8,7 +8,10 @@ const fse         = require('fs-extra');
 const request     = require('request');
 const tmp         = require('tmp');
 
-let config    = require('../../lib/config');
+const test_utils  = require('./test_utils');
+
+let config = require('../../lib/config');
+
 
 let BASE_PORT   = 9000;
 let PORT_RANGE  = 200;
@@ -24,13 +27,7 @@ describe('acls', () => {
     // setup a mongo instance
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${DB_PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${DB_PORT}`);
+    test_utils.start_database(tmpdir, DB_PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${DB_PORT}/test`);
     p_db.then(done);
   }, 25000);
@@ -58,7 +55,6 @@ describe('acls', () => {
         return {
           mongourl: `mongodb://localhost:${DB_PORT}/test`,
           port: SERVER_PORT,
-          loglevel: "debug",
           'no-ssl': true
         };
       });
@@ -81,7 +77,7 @@ describe('acls', () => {
         },
       }, (err, res) => {
         if(err){
-          done.fail();
+          done.fail(err);
         }
         expect(res.statusCode).toBe(403);
         done();

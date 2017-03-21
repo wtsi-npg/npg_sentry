@@ -12,7 +12,8 @@ let BASE_PORT  = 9000;
 let PORT_RANGE = 200;
 let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
-const constants = require('../../lib/constants');
+const constants  = require('../../lib/constants');
+const test_utils = require('./test_utils');
 let config = require('../../lib/config');
 
 let dbConn;
@@ -33,13 +34,7 @@ describe('model', function() {
     dbConn = require('../../lib/db_conn');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
+    test_utils.start_database(tmpdir, PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
     p_db.then(done);
   }, 25000);

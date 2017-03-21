@@ -26,13 +26,7 @@ describe('secure server', function() {
     // setup a mongo instance
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
+    test_utils.start_database(tmpdir, PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
     let p_certs = new Promise(function(resolve, reject) {
       test_utils.create_certificates(
@@ -69,8 +63,8 @@ describe('secure server', function() {
           console.log('server config set');
           return {
             mongourl: `mongodb://localhost:${PORT}/test`,
-            sslca: tmpdir + '/certs/CA.cert',
-            sslkey: tmpdir + '/certs/server.key',
+            sslca:   tmpdir + '/certs/CA.cert',
+            sslkey:  tmpdir + '/certs/server.key',
             sslcert: tmpdir + '/certs/server.cert',
             port: SERVER_PORT,
             loglevel: 'debug',
