@@ -1,14 +1,14 @@
 'use strict';
 
-const child = require('child_process');
 const https = require('https');
 
-const decache = require('decache');
-const fse = require('fs-extra');
+const decache     = require('decache');
+const fse         = require('fs-extra');
 const MongoClient = require('mongodb').MongoClient;
-const tmp = require('tmp');
+const tmp         = require('tmp');
 
 const test_utils = require('./test_utils.js');
+
 let config = require('../../lib/config');
 
 let BASE_PORT  = 9000;
@@ -75,10 +75,7 @@ describe('secure server', function() {
   }, 25000);
 
   afterAll(function(done) {
-    child.execSync(
-      `mongo 'mongodb://localhost:${PORT}/admin' --eval 'db.shutdownServer()'`
-    );
-    console.log('\nMongoDB daemon has been switched off');
+    test_utils.stop_database(PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);

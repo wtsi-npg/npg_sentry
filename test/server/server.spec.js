@@ -47,10 +47,7 @@ describe('server', () => {
   }, 25000);
 
   afterAll(function(done) {
-    child.execSync(
-      `mongo 'mongodb://localhost:${DB_PORT}/admin' --eval 'db.shutdownServer()'`
-    );
-    console.log('\nMongoDB daemon has been switched off');
+    utils.stop_database(DB_PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);

@@ -11,7 +11,7 @@ const CERT_EXT = 'cert';
  * Start a temporary mongo database with tmpdir as root filesystem and listening
  * in port
  * @param  {String} tmpdir Path to use as system root for the DB
- * @param  {number} port   Port where to listen
+ * @param  {Number} port   Port where to listen
  */
 let start_database = ( tmpdir, port ) => {
   let command =
@@ -21,6 +21,17 @@ let start_database = ( tmpdir, port ) => {
   let out = child.execSync(command);
   console.log(`MongoDB daemon started: ${out}`);
   child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${port}`);
+};
+
+/**
+ * Stop database running in port
+ * @param  {Number} port Port where datatabase is listening
+ */
+let stop_database = ( port ) => {
+  child.execSync(
+    `mongo 'mongodb://localhost:${port}/admin' --eval 'db.shutdownServer()'`
+  );
+  console.log('\nMongoDB daemon has been switched off');
 };
 
 let create_self_signed_cert = ( path, cert_prefix, callback) => {
@@ -128,7 +139,8 @@ module.exports = {
   create_certificates,
   create_self_signed_cert,
   getCollection,
-  start_database
+  start_database,
+  stop_database
 };
 
 if ( !module.parent ) {
