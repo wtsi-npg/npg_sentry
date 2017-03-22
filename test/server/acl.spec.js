@@ -89,6 +89,22 @@ describe('acls', () => {
       req.on('error', done.fail);
     });
 
+    it('gets a 401 when unauthenticated', (done) => {
+      let req = request.get({
+        url: `http://localhost:${SERVER_PORT}/admin/`,
+        headers: {
+          "content-type": "application/json"
+        },
+      }, (err, res) => {
+        if (err) {
+          done.fail(err);
+        }
+        expect(res.statusCode).toBe(401);
+        done();
+      });
+      req.on('error', done.fail);
+    });
+
     // pending until administrators list is not hardcoded
     xit('gets a 200', (done) => {
       request.get({
