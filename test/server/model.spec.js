@@ -141,6 +141,7 @@ describe('model', function() {
           expect(moment(hist.time)
             .isBetween(moment().subtract(5, 'seconds'), moment())).toBe(true);
           expect(hist.operating_user).toBe(user);
+          expect(hist.operation).toBe(constants.TOKEN_OPERATION_CREATE);
           expect(hist.reason).toBe('test creation');
         };
 
@@ -227,6 +228,7 @@ describe('model', function() {
           expect(moment(hist.time)
             .isBetween(moment().subtract(5, 'seconds'), moment())).toBe(true);
           expect(hist.operating_user).toBe(user);
+          expect(hist.operation).toBe(constants.TOKEN_OPERATION_REVOKE);
           expect(hist.reason).toBe('Test revocation');
         }).then(done, done.fail);
       });
