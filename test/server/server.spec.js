@@ -264,6 +264,40 @@ describe('server', () => {
         }, done.fail);
       });
 
+      it('test revoke returns error when content-type not set', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "x-remote-user": 'someuser@domain.com'
+          },
+          body: '{"token": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"}'
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
+      });
+
+      it('test revoke returns error when body is missing', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": 'someuser@domain.com'
+          },
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
+      });
+
       it('test revoke returns error when non json req', (done) => {
         request.post({
           url: `http://localhost:${SERVER_PORT}/revokeToken`,
