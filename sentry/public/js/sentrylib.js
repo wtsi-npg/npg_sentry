@@ -1,4 +1,4 @@
-define(['jquery', 'clipboard'], function($, Clipboard) {
+define(['jquery'], function($) {
   'use strict';
 
   function showErrorMsg(content) {
@@ -85,6 +85,8 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       var kv = element.split('=');
       if (query[kv[0]] === undefined) {
         query[kv[0]] = kv[1] === undefined ? true : kv[1];
+      } else if (query[kv[0]] instanceof Array) {
+        query[kv[0]].push(kv[1]);
       } else {
         query[kv[0]] = [query[kv[0]], kv[1]];
       }
@@ -93,67 +95,12 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     return query;
   }
 
-  function setupPage() {
-    var $floatdiv = $('#floating-div');
-    $('#show-token-form-button').on('click', function() {
-      $floatdiv.toggle();
-    });
-    $('#close-token-form-button').on('click', function() {
-      $floatdiv.toggle(false);
-    });
-    $('#create-token-button').on('click', function() {
-      $floatdiv.toggle(false);
-    });
-
-    $('#create-token-button').on('click', function() {
-      $.post({
-        url: 'createToken',
-        success: function(data) {
-          var $th = $('#table-headers');
-          var $row = generateTokenRow($('<tr></tr>'), data);
-          $th.after($row);
-        },
-        error: function(jqXHR) {
-          showErrorMsg(
-            'Error when submitting token request: ' + jqXHR.status + ': ' + jqXHR.statusText);
-        }
-      });
-    });
-
-    $.get({
-      url: 'listTokens',
-      success: function(data) {
-        var $table = $('#token-table');
-        data.forEach(function(doc) {
-          var $row = $('<tr></tr>');
-          $row = generateTokenRow($row, doc);
-          $table.append($row);
-        });
-      },
-      error: function(jqXHR) {
-        showErrorMsg(
-          'Error when getting token list: ' + jqXHR.status + ': ' + jqXHR.statusText);
-      }
-    });
-
-    new Clipboard('.cp-btn', {
-      target: function(trigger) {
-        return trigger.parentNode.previousElementSibling;
-      }
-    });
-
-    var query = parseQuery($(location).attr('href'));
-    if (query.create) {
-      $floatdiv.toggle(true);
-    }
-  }
 
   return {
     addValueToRow: addValueToRow,
     generateTokenRow: generateTokenRow,
     revokeToken: revokeToken,
     parseQuery: parseQuery,
-    setupPage: setupPage,
     showErrorMsg: showErrorMsg,
   };
 });

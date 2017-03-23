@@ -61,11 +61,14 @@ if (opts.get('no-ssl')) {
   serv = https.createServer(httpsopts, app);
 }
 
+// app.get('/foo') is not the same as app.get('/foo/')
+app.enable('strict routing');
+
+app.set('view engine', 'ejs');
+
 app.use(helmet({
   hsts: false
 }));
-
-app.set('view engine', 'ejs');
 
 app.use(logger.connectLogger(logger, { level: 'auto' }));
 
@@ -77,10 +80,13 @@ admin_controller.setup(app);
 
 authorisation_controller.setup(app);
 
+app.get('/', function(req, res) {
+  res.render(path.join(__dirname, 'sentry/views', 'index'));
+});
+
 app.use(express.static(path.join(__dirname, 'sentry/public')));
 
 app.use(function(req, res) {
-logger.debug('>>>>> THERE ');
   let statusCode = 404;
   res.status(statusCode)
      .render(path.join(__dirname, 'sentry/views', 'error'), {

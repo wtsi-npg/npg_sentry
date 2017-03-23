@@ -1,5 +1,5 @@
 requirejs.config({
-  baseUrl: 'js',
+  baseUrl: '/js',
   paths: {
     jquery: 'bower_components/jquery/dist/jquery',
     clipboard: 'bower_components/clipboard/dist/clipboard'
@@ -15,9 +15,9 @@ requirejs.onError = function(err) {
   throw err;
 };
 
-requirejs(['jquery', 'auth'], function($, auth) {
+requirejs(['jquery', 'setup'], function($, setup) {
   'use strict';
   $(document).ready(function() {
-    auth.setupPage();
+    setup.setupPage();
   });
 });

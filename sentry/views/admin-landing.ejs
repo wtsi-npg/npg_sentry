@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>npg_sentry: Admin</title>
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+  </head>
+  <body>
+    <div id="page">
+      <h2>Enter a username to act upon</h2>
+      <input type="text" id="user-select">
+      <button id="user-viewer">Go</button>
+    </div>
+
+    <script type="application/javascript" src="/js/bower_components/requirejs/require.js"></script>
+    <script>
+requirejs.config({
+  baseUrl: '/js',
+  paths: {
+    jquery: 'bower_components/jquery/dist/jquery'
+  }
+});
+
+requirejs(['jquery'], function($) {
+  'use strict';
+  $(document).ready(function() {
+    $('#user-viewer').click(function() {
+      var uname = $('#user-select').val();
+      window.location = 'user/' + uname + '/';
+    });
+  });
+});
+    </script>
+
+  </body>
+</html>
