@@ -18,6 +18,7 @@ CHANGES
   - upgrade mongodb to 2.2.31 from 2.2.22
   - upgrade pem to 1.9.7 from 1.9.4
   - upgrade tmp to 0.0.33 from 0.0.31
+  - reduce chance of duplicated tokens in db
 
 release 0.4.0
   - add admin pages and endpoints

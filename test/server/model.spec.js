@@ -162,6 +162,56 @@ describe('model', function() {
         });
       });
 
+      it('fails with duplicated tokens', function(done) {
+        let utils = require('../../lib/token_utils');
+        spyOn(
+          utils,
+          'generateTokenStringPromise'
+        ).and.returnValue(Promise.resolve('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'));
+
+        let owner = 'owner@example.com';
+        let user  = 'user@example.com';
+        let p_insert = model.createToken(owner, user, 'test creation');
+        let p_insert2 = p_insert.then(() => {
+          expect(utils.generateTokenStringPromise.calls.count()).toEqual(1);
+          let secondTokenPromise = model.createToken(owner, user, 'test creation');
+          expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
+          return secondTokenPromise;
+        }, (err) => {
+          done.fail(err);
+        });
+
+        p_insert2.then(() => { // second call
+          expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
+          done.fail('Second insert should fail but succeeds');
+        }, (err) => {
+          expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
+          expect(err.toString()).toMatch(/duplicated token/i);
+          let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
+
+          let p_count = p_collection.then(function(collection) {
+            return new Promise(function(resolve, reject) {
+              try {
+                resolve(
+                  collection.find(
+                    {user: owner} // user == owner, operating_user == user
+                  ).count());
+              } catch (err) {
+                fail(err);
+                reject(err);
+              }
+            });
+          });
+
+          p_count.then(function(count) {
+            expect(count).toBe(1);
+            done();
+          }, (err) => {
+            done.fail(err);
+          });
+        });
+      });
+
       it('rejects with invalid parameters', function(done) {
         let ps = [];
 
@@ -204,7 +254,6 @@ describe('model', function() {
         Promise.all(ps).then(done, done.fail);
       });
     });
-
 
     describe('revokeToken', function() {
 
