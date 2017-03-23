@@ -1,4 +1,5 @@
 
+ - add admin pages and endpoints
  - add acl as dep
  - ssl defaults to on
  - new option --sslca
