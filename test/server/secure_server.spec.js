@@ -7,14 +7,14 @@ const fse         = require('fs-extra');
 const MongoClient = require('mongodb').MongoClient;
 const tmp         = require('tmp');
 
-const test_utils = require('./test_utils.js');
+const test_utils  = require('./test_utils.js');
 
-let config = require('../../lib/config');
+let config        = require('../../lib/config');
 
-let BASE_PORT  = 9000;
-let PORT_RANGE = 200;
-let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
-let SERVER_PORT = PORT + 1;
+let BASE_PORT     = 9000;
+let PORT_RANGE    = 200;
+let DB_PORT       = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
+let SERVER_PORT   = DB_PORT + 1;
 
 let p_db;
 let tmpobj;
@@ -26,8 +26,8 @@ describe('secure server', function() {
     // setup a mongo instance
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    test_utils.start_database(tmpdir, PORT);
-    p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
+    test_utils.start_database(tmpdir, DB_PORT);
+    p_db = MongoClient.connect(`mongodb://localhost:${DB_PORT}/test`);
     let p_certs = new Promise(function(resolve, reject) {
       test_utils.create_certificates(
         `${tmpdir}/certs`,
@@ -62,9 +62,9 @@ describe('secure server', function() {
         config.provide(() => {
           console.log('server config set');
           return {
-            mongourl: `mongodb://localhost:${PORT}/test`,
-            sslca:   tmpdir + '/certs/CA.cert',
-            sslkey:  tmpdir + '/certs/server.key',
+            mongourl: `mongodb://localhost:${DB_PORT}/test`,
+            sslca: tmpdir + '/certs/CA.cert',
+            sslkey: tmpdir + '/certs/server.key',
             sslcert: tmpdir + '/certs/server.cert',
             port: SERVER_PORT,
             loglevel: 'debug',
@@ -75,7 +75,7 @@ describe('secure server', function() {
   }, 25000);
 
   afterAll(function(done) {
-    test_utils.stop_database(PORT);
+    test_utils.stop_database(DB_PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);

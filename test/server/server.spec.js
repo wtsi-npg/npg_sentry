@@ -83,17 +83,17 @@ describe('server', () => {
       done();
     });
 
-    describe('user checking', function() {
+    describe('user validating', function() {
       beforeEach(function(done) {
         child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
         done();
       });
 
-      it('rejects when checking unknown user', function (done) {
+      it('rejects when validating unknown user', function (done) {
         let groups = ['1', '2', '3'];
         insertUser(p_db, 'someuser@domain.com', groups).then( () => {
           request.post({
-            url: `http://localhost:${SERVER_PORT}/checkUser`,
+            url: `http://localhost:${SERVER_PORT}/validateUser`,
             headers: {
               "content-type":  'application/json',
               "x-remote-user": 'someotheruser@domain.com'
@@ -112,11 +112,11 @@ describe('server', () => {
         });
       });
 
-      it('rejects when checking user with different groups', function (done) {
+      it('rejects when validating user with different groups', function (done) {
         let user = 'someuser@domain.com';
         insertUser(p_db, user, ['1', '2']).then( () => {
           request.post({
-            url: `http://localhost:${SERVER_PORT}/checkUser`,
+            url: `http://localhost:${SERVER_PORT}/validateUser`,
             headers: {
               "content-type":  'application/json',
               "x-remote-user": user
@@ -134,12 +134,12 @@ describe('server', () => {
         }, done.fail);
       });
 
-      it('ok when checking user with correct groups', function (done) {
+      it('ok when validating user with correct groups', function (done) {
         let user   = 'someuser@domain.com';
         let groups = ['1', '2', '3'];
         insertUser(p_db, user, groups).then( () => {
           request.post({
-            url: `http://localhost:${SERVER_PORT}/checkUser`,
+            url: `http://localhost:${SERVER_PORT}/validateUser`,
             headers: {
               "content-type":  'application/json',
               "x-remote-user": user
@@ -164,7 +164,7 @@ describe('server', () => {
         done();
       });
 
-      it('creates a token and checks it', function (done) {
+      it('creates a token and validates it', function (done) {
         let postData = {
           "groups": [ '1', '2', '3' ]
         };
@@ -190,7 +190,7 @@ describe('server', () => {
               postData.token = jbody.token;
 
               request.post({
-                url: `http://localhost:${SERVER_PORT}/checkToken`,
+                url: `http://localhost:${SERVER_PORT}/validateToken`,
                 headers: {
                   "content-type": 'application/json',
                   "x-remote-user": user
@@ -271,7 +271,7 @@ describe('server', () => {
                   expect(jbody2.status).toBe(constants.TOKEN_STATUS_REVOKED);
 
                   request.post({
-                    url: `http://localhost:${SERVER_PORT}/checkToken`,
+                    url: `http://localhost:${SERVER_PORT}/validateToken`,
                     headers: {
                       "content-type": 'application/json',
                       "x-remote-user": user

@@ -1,6 +1,7 @@
 
  - add admin pages and endpoints
  - add acl as dep
+ - move perl script to generate db to github
  - ssl defaults to on
  - new option --sslca
  - clients must present a valid certificate, signed by passed CA
