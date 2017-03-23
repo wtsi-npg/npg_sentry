@@ -104,7 +104,7 @@ describe('server', () => {
             })
           }, (err, res) => {
             if(err){
-              done.fail();
+              done.fail(err);
             }
             expect(res.statusCode).not.toBe(200);
             done();

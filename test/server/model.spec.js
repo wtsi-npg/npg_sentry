@@ -464,11 +464,12 @@ describe('model', function() {
         let reqdGroups = ['1', '5'];
 
         model.checkUser(reqdGroups, user).then(function() {
-          fail();
+          done.fail('Validate user should have failed but succeded');
         }, function(reason) {
           expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(constants.UNEXPECTED_NUM_DOCS);
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when groups field is missing', function(done) {
@@ -605,12 +606,12 @@ describe('model', function() {
       it('fails when token does not exist', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = ['1', '2', '3'];
 
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
         let p_userInsertion = p_userCollection.then(function(collection) {
-          return collection.insertOne({user, groups: ['1', '2', '3']});
+          return collection.insertOne({user, groups: reqdGroups});
         });
 
         let p_result = p_userInsertion.then(function() {
@@ -618,13 +619,14 @@ describe('model', function() {
         });
 
         p_result.then(function() {
-          fail();
+          done.fail('Validate token should have failed but succeded');
         }, function(reason) {
           expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when token has been revoked', function(done) {

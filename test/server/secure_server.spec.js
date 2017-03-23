@@ -135,8 +135,8 @@ describe('secure server', function() {
         ca: fse.readFileSync(tmpdir + '/certs/CA.cert'),
         key: fse.readFileSync(tmpdir + '/certs/selfsigned.key'),
         cert: fse.readFileSync(tmpdir + '/certs/selfsigned.cert'),
-      }, () => {
-        done.fail();
+      }, err => {
+        done.fail(err);
       });
       req.once('error', (err) => {
         expect(err).toMatch(/socket hang up/i);
