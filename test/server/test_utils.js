@@ -4,6 +4,8 @@ const child = require('child_process');
 const fse   = require('fs-extra');
 const pem   = require('pem');
 
+const constants = require('../../lib/constants');
+
 const KEY_EXT  = 'key';
 const CERT_EXT = 'cert';
 
@@ -43,6 +45,29 @@ let drop_database = ( port ) => {
     `mongo 'mongodb://localhost:${port}/test' --eval 'db.dropDatabase()'`
   );
   console.log('\nDropped all collections from MongoDB');
+};
+
+/**
+ * Invokes the create-admin script.
+ * @param  {Number} port Port where database is listening
+ * @param  {String} username User to add to administrator role
+ * @param  {String[]} permissions Array of permissions for administrator role
+ */
+let create_test_acls = (port, username, permissions) => {
+  for (let perm of permissions) {
+    child.execSync(
+      './scripts/create-admin.js' +
+      ` --mongourl 'mongodb://localhost:${port}/test'` +
+      ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+      ` --permission "${perm}"`
+    );
+  }
+  child.execSync(
+    './scripts/create-admin.js' +
+    ` --mongourl 'mongodb://localhost:${port}/test'` +
+    ` --type "user" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+    ` --username "${username}"`
+  );
 };
 
 /**
@@ -169,6 +194,7 @@ let getCollection = (collName) => {
 module.exports = {
   create_certificates,
   create_self_signed_cert,
+  create_test_acls,
   getCollection,
   start_database,
   stop_database,

@@ -60,24 +60,8 @@ describe('acls', () => {
       child.execSync(
         `./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${SERVER_PORT}`
       );
-      child.execSync(
-        './scripts/create-admin.js' +
-        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
-        ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
-        ` --permission "${constants.ACL_ACTION_VIEW}"`
-      );
-      child.execSync(
-        './scripts/create-admin.js' +
-        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
-        ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
-        ` --permission "${constants.ACL_ACTION_POST}"`
-      );
-      child.execSync(
-        './scripts/create-admin.js' +
-        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
-        ` --type "user" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
-        ' --username "someuser@domain.com"'
-      );
+      test_utils.create_test_acls(DB_PORT, 'someuser@domain.com',
+        [constants.ACL_ACTION_VIEW, constants.ACL_ACTION_POST]);
       done();
     });
 
