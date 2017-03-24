@@ -13,7 +13,7 @@ const tmp         = require('tmp');
 let config    = require('../../lib/config');
 let constants = require('../../lib/constants');
 
-let utils     = require('./test_utils');
+const utils     = require('./test_utils');
 
 let BASE_PORT   = 9000;
 let PORT_RANGE  = 200;
@@ -288,6 +288,24 @@ describe('server', () => {
             "content-type": 'application/json',
             "x-remote-user": 'someuser@domain.com'
           },
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
+      });
+
+      it('test revoke returns error when missing token in json', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": 'someuser@domain.com'
+          },
+          body: '{"someothervalue": "1"}'
         }, (err, res, body) => {
           if(err){
             done.fail(err);
