@@ -10,7 +10,8 @@ const tmp         = require('tmp');
 
 const test_utils  = require('./test_utils');
 
-let config = require('../../lib/config');
+let config        = require('../../lib/config');
+let constants     = require('../../lib/constants');
 
 
 let BASE_PORT   = 9000;
@@ -56,7 +57,27 @@ describe('acls', () => {
         };
       });
       server = require('../../npg_sentry');
-      child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${SERVER_PORT}`);
+      child.execSync(
+        `./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${SERVER_PORT}`
+      );
+      child.execSync(
+        './scripts/create-admin.js' +
+        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
+        ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+        ` --permission "${constants.ACL_ACTION_VIEW}"`
+      );
+      child.execSync(
+        './scripts/create-admin.js' +
+        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
+        ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+        ` --permission "${constants.ACL_ACTION_POST}"`
+      );
+      child.execSync(
+        './scripts/create-admin.js' +
+        ` --mongourl 'mongodb://localhost:${DB_PORT}/test'` +
+        ` --type "user" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+        ' --username "someuser@domain.com"'
+      );
       done();
     });
 
@@ -98,8 +119,7 @@ describe('acls', () => {
       req.on('error', done.fail);
     });
 
-    // pending until administrators list is not hardcoded
-    xit('gets a 200', (done) => {
+    it('gets a 200', (done) => {
       request.get({
         url: `http://localhost:${SERVER_PORT}/admin/`,
         headers: {
