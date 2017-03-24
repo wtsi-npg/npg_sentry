@@ -79,15 +79,11 @@ describe('server', () => {
     });
 
     beforeEach(function(done) {
-      child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+      utils.drop_database(DB_PORT);
       done();
     });
 
     describe('user validating', function() {
-      beforeEach(function(done) {
-        child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
-        done();
-      });
 
       it('rejects when validating unknown user', function (done) {
         let groups = ['1', '2', '3'];
@@ -156,11 +152,11 @@ describe('server', () => {
           });
         }, done.fail);
       });
-    });;
+    });
 
     describe('token management', () => {
       beforeEach(function(done) {
-        child.execSync(`mongo 'mongodb://localhost:${DB_PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+        utils.drop_database(DB_PORT);
         done();
       });
 

@@ -25,13 +25,24 @@ let start_database = ( tmpdir, port ) => {
 
 /**
  * Stop database running in port
- * @param  {Number} port Port where datatabase is listening
+ * @param  {Number} port Port where database is listening
  */
 let stop_database = ( port ) => {
   child.execSync(
     `mongo 'mongodb://localhost:${port}/admin' --eval 'db.shutdownServer()'`
   );
   console.log('\nMongoDB daemon has been switched off');
+};
+
+/**
+ * Drop all collections from database
+ * @param  {Number} port Port where database is listening
+ */
+let drop_database = ( port ) => {
+  child.execSync(
+    `mongo 'mongodb://localhost:${port}/test' --eval 'db.dropDatabase()'`
+  );
+  console.log('\nDropped all collections from MongoDB');
 };
 
 /**
@@ -160,5 +171,6 @@ module.exports = {
   create_self_signed_cert,
   getCollection,
   start_database,
-  stop_database
+  stop_database,
+  drop_database,
 };

@@ -1,7 +1,5 @@
 'use strict';
 
-const child = require('child_process');
-
 const decache = require('decache');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
@@ -90,7 +88,7 @@ describe('model', function() {
 
   describe('exported function', function() {
     beforeEach(function() {
-      child.execSync(`mongo 'mongodb://localhost:${PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+      test_utils.drop_database(PORT);
     });
 
     describe('createToken', function() {
