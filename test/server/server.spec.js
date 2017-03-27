@@ -161,6 +161,51 @@ describe('server', () => {
         done();
       });
 
+      it('creates a token and lists it', function (done) {
+        let token;
+        let groups = ['1', '2', '3'];
+        let user = 'someuser@domain.com';
+        insertUser(p_db, user, groups).then(function() {
+          request.post({
+            url: `http://localhost:${SERVER_PORT}/createToken`,
+            headers: {
+              "content-type": 'application/json',
+              "x-remote-user": user
+            },
+          }, (err, res, body) => {
+              if(err){
+                done.fail(err);
+              }
+
+              expect(res.statusCode).toBe(200);
+              console.log(body);
+              let jbody = JSON.parse(body);
+
+              expect(jbody.token).toBeDefined();
+              expect(jbody.user).toBe(user);
+              token = jbody.token;
+
+              request.get({
+                url: `http://localhost:${SERVER_PORT}/listTokens`,
+                headers: {
+                  "x-remote-user": user
+                },
+              }, (err2, res2, body2) => {
+                  if(err2){
+                    done.fail(err2);
+                  }
+                  expect(res2.statusCode).toBe(200);
+                  let jbody2 = JSON.parse(body2);
+                  expect(jbody2.length).toBe(1);
+                  expect(jbody2[0].token).toBe(token);
+                  expect(jbody2[0].status).toBe(constants.TOKEN_STATUS_VALID);
+                  expect(jbody2[0].user).toBe(user);
+                  done();
+              });
+          });
+        }, done.fail);
+      });
+
       it('creates a token and validates it', function (done) {
         let postData = {
           "groups": [ '1', '2', '3' ]
@@ -204,6 +249,58 @@ describe('server', () => {
               });
           });
         }, done.fail);
+      });
+
+      it('test revoke returns error when content-type not set', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "x-remote-user": 'someuser@domain.com'
+          },
+          body: '{"token": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"}'
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
+      });
+
+      it('test revoke returns error when body is missing', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": 'someuser@domain.com'
+          },
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
+      });
+
+      it('test revoke returns error when missing token in json', (done) => {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/revokeToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": 'someuser@domain.com'
+          },
+          body: '{"someothervalue": "1"}'
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+          expect(body).toMatch(http.STATUS_CODES[400]);
+          done();
+        });
       });
 
       it('test revoke returns error when non json req', (done) => {
