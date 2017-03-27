@@ -178,7 +178,6 @@ describe('server', () => {
               }
 
               expect(res.statusCode).toBe(200);
-              console.log(body);
               let jbody = JSON.parse(body);
 
               expect(jbody.token).toBeDefined();
@@ -224,7 +223,6 @@ describe('server', () => {
               }
 
               expect(res.statusCode).toBe(200);
-              console.log(body);
               let jbody = JSON.parse(body);
 
               expect(jbody.token).toBeDefined();
@@ -338,7 +336,6 @@ describe('server', () => {
               }
 
               expect(res.statusCode).toBe(200);
-              console.log(body);
               let jbody = JSON.parse(body);
 
               expect(jbody.token).toBeDefined();
@@ -436,7 +433,6 @@ describe('server', () => {
             }
 
             expect(res.statusCode).toBe(200);
-            console.log(body);
             let jbody = JSON.parse(body);
 
             expect(jbody.token).toBeDefined();
@@ -462,17 +458,102 @@ describe('server', () => {
       }, done.fail);
     });
 
-    it('revokes another user\'s token', (done) => {
-      let user       = 'someuser@domain.com';
-      let targetUser = 'anotheruser@domain.com';
-      let groups     = [ '1', '2' ];
+    describe("revoking another user's token", () => {
+      it('succeeds', (done) => {
+        let user       = 'someuser@domain.com';
+        let targetUser = 'anotheruser@domain.com';
+        let groups     = [ '1', '2' ];
 
-      insertUser(p_db, targetUser, groups).then( () => {
+        insertUser(p_db, targetUser, groups).then( () => {
+          request.post({
+            url: `http://localhost:${SERVER_PORT}/createToken`,
+            headers: {
+              "content-type": 'application/json',
+              "x-remote-user": targetUser
+            },
+          }, (err, res, body) => {
+              if (err) {
+                done.fail(err);
+              }
+
+              expect(res.statusCode).toBe(200);
+              let jbody = JSON.parse(body);
+
+              expect(jbody.token).toBeDefined();
+              expect(jbody.user).toBe(targetUser);
+              let postData = {
+                token:  jbody.token,
+                groups: groups
+              };
+
+              request.post({
+                url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/revokeToken`,
+                headers: {
+                  "content-type": 'application/json',
+                  "x-remote-user": user
+                },
+                body: JSON.stringify(postData)
+              }, (err2, res2, body2) => {
+                  if (err2) {
+                    done.fail(err2);
+                  }
+                  expect(res2.statusCode).toBe(200);
+                  let jbody2 = JSON.parse(body2);
+                  expect(jbody2.token).toBe(jbody.token);
+                  expect(jbody2.status).toBe(constants.TOKEN_STATUS_REVOKED);
+
+                  request.post({
+                    url: `http://localhost:${SERVER_PORT}/validateToken`,
+                    headers: {
+                      "content-type": 'application/json',
+                    },
+                    body: JSON.stringify(postData)
+                  }, (err3, res3, body3) => {
+                      if (err3) {
+                        done.fail(err3);
+                      }
+                      expect(res3.statusCode).toBe(200);
+                      let jbody3 = JSON.parse(body3);
+                      expect(jbody3.ok).toBe(false);
+                      done();
+                  });
+              });
+          });
+        }, done.fail);
+      });
+
+      it('fails if no token provided', (done) => {
+        let user       = 'someuser@domain.com';
+        let targetUser = 'anotheruser@domain.com';
         request.post({
-          url: `http://localhost:${SERVER_PORT}/createToken`,
+          url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/revokeToken`,
           headers: {
             "content-type": 'application/json',
-            "x-remote-user": targetUser
+            "x-remote-user": user
+          },
+        }, (err, res, body) => {
+            if (err) {
+              done.fail(err);
+            }
+            expect(res.statusCode).toBe(400);
+            expect(body).toMatch(http.STATUS_CODES[400]);
+            done();
+        });
+      });
+    });
+
+    it("lists another user's tokens", (done) => {
+      let postData = {
+        "groups": [ '1', '2', '3' ]
+      };
+      let user = 'someuser@domain.com';
+      let targetUser = 'anotheruser@domain.com';
+      insertUser(p_db, targetUser, postData.groups).then(function() {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/createToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
           },
         }, (err, res, body) => {
             if (err) {
@@ -480,21 +561,16 @@ describe('server', () => {
             }
 
             expect(res.statusCode).toBe(200);
-            console.log(body);
             let jbody = JSON.parse(body);
 
             expect(jbody.token).toBeDefined();
             expect(jbody.user).toBe(targetUser);
-            let postData = {
-              token:  jbody.token,
-              groups: groups
-            };
+            postData.token = jbody.token;
 
-            request.post({
-              url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/revokeToken`,
+            request.get({
+              url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/listTokens`,
               headers: {
-                "content-type": 'application/json',
-                "x-remote-user": user
+                "x-remote-user": user,
               },
               body: JSON.stringify(postData)
             }, (err2, res2, body2) => {
@@ -503,27 +579,97 @@ describe('server', () => {
                 }
                 expect(res2.statusCode).toBe(200);
                 let jbody2 = JSON.parse(body2);
-                expect(jbody2.token).toBe(jbody.token);
-                expect(jbody2.status).toBe(constants.TOKEN_STATUS_REVOKED);
-
-                request.post({
-                  url: `http://localhost:${SERVER_PORT}/validateToken`,
-                  headers: {
-                    "content-type": 'application/json',
-                  },
-                  body: JSON.stringify(postData)
-                }, (err3, res3, body3) => {
-                    if (err3) {
-                      done.fail(err3);
-                    }
-                    expect(res3.statusCode).toBe(200);
-                    let jbody3 = JSON.parse(body3);
-                    expect(jbody3.ok).toBe(false);
-                    done();
-                });
+                expect(jbody2[0].token).toBe(jbody.token);
+                expect(jbody2[0].user).toBe(targetUser);
+                expect(jbody2[0].status).toBe('valid');
+                done();
             });
         });
       }, done.fail);
+    });
+
+    it('renders admin interface', (done) => {
+      let user = 'someuser@domain.com';
+      let targetUser = 'anotheruser@domain.com';
+      request.get({
+        url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/`,
+        headers: {
+          "x-remote-user": user,
+        },
+      }, (err, res, body) => {
+        if (err) {
+          done.fail(err);
+        }
+
+        expect(res.statusCode).toBe(200);
+        expect(body).toMatch('<!DOCTYPE html>');
+        expect(body).toMatch('<title>Admin Token Management</title>');
+        done();
+      });
+    });
+
+    it('renders admin landing page', (done) => {
+      let user = 'someuser@domain.com';
+      request.get({
+        url: `http://localhost:${SERVER_PORT}/admin/`,
+        headers: {
+          "x-remote-user": user,
+        },
+      }, (err, res, body) => {
+        if (err) {
+          done.fail(err);
+        }
+
+        expect(res.statusCode).toBe(200);
+        expect(body).toMatch('<!DOCTYPE html>');
+        expect(body).toMatch('<title>npg_sentry: Admin</title>');
+        done();
+      });
+    });
+
+    describe('redirects to ensure correct url', () => {
+      it('admin interface', (done) => {
+        let user = 'someuser@domain.com';
+        let targetUser = 'anotheruser@domain.com';
+        let urlPath = `/admin/user/${targetUser}`;
+        request.get({
+          url: `http://localhost:${SERVER_PORT}${urlPath}`,
+          headers: {
+            "x-remote-user": user,
+          },
+          followRedirect: false,
+        }, (err, res, body) => {
+          if (err) {
+            done.fail(err);
+          }
+
+          expect(res.statusCode).toBe(302);
+          expect(body).toMatch(http.STATUS_CODES[302]);
+          expect(res.headers['location']).toBe(urlPath + '/');
+          done();
+        });
+      });
+
+      it('admin landing page', (done) => {
+        let user = 'someuser@domain.com';
+        let urlPath = '/admin';
+        request.get({
+          url: `http://localhost:${SERVER_PORT}${urlPath}`,
+          headers: {
+            "x-remote-user": user,
+          },
+          followRedirect: false,
+        }, (err, res, body) => {
+          if (err) {
+            done.fail(err);
+          }
+
+          expect(res.statusCode).toBe(302);
+          expect(body).toMatch(http.STATUS_CODES[302]);
+          expect(res.headers['location']).toBe(urlPath + '/');
+          done();
+        });
+      });
     });
   });
 });
