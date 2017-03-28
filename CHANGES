@@ -1,2 +1,16 @@
-
+ CHANGES
+ 
+ release 0.3.0
+ - upgrade body-parser to 1.17.1 from 1.17.0
+ - upgrade express to 4.15.2 from 4.15.0
+ - move perl script to generate db to github
+ - ssl defaults to on
+ - new option --sslca
+ - clients must present a valid certificate, signed by passed CA
+ - add pem as dev dep
+ - more debug level logging messages
+ - use random db port for tests
+ - format for npm deployment
+ - split controller setup into module
+ - renaming app.js to npg_sentry.js
  - adding linting and tests

@@ -16,14 +16,14 @@ module.exports = function(grunt) {
           ' */'
       },
       build: {
-        src: 'public/js/script.js',
-        dest: 'public/js/script.min.js'
+        src: 'sentry/public/js/script.js',
+        dest: 'sentry/public/js/script.min.js'
       }
     },
     cssmin: {
       target: {
         files: {
-          'public/css/styles.min.css': 'public/css/styles.css'
+          'sentry/public/css/styles.min.css': 'sentry/public/css/styles.css'
         }
       }
     },
@@ -33,9 +33,9 @@ module.exports = function(grunt) {
     eslint: {
       target: [
         'Gruntfile.js',
-        'app.js',
+        'npg_sentry.js',
         'lib/*.js',
-        'public/js/*.js',
+        'sentry/public/js/*.js',
         'test/**/*.js',
         '!**/*.min.js', // don't lint minified files
       ]

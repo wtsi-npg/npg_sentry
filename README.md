@@ -21,7 +21,7 @@ OR use pm2 to run server as a daemonised cluster:
 
 ```
 $ npm i -g pm2
-$ pm2 start app.js -i <number of processes> -- <arguments to pass to server>
+$ pm2 start npg_sentry.js -i <number of processes> -- <arguments to pass to server>
 $ # stop the server
 $ pm2 stop app
 $ # reload the server
@@ -50,17 +50,20 @@ option       | .
  mongourl    | URI to connect to mongodb
  loglevel    | logging output level
  configfile  | configuration json file
- ssl         | run server on https (see below)
+ no-ssl      | run server on http (see below)
 
 #### SSL
 
-To run sentry on https, all 3 of the following configuration options must be set:
-- --ssl
+Sentry will, by default, run on https. This requires the following options to be set:
+
+- --sslca=cafile
 - --sslcert=certfile
 - --sslkey=keyfile
 - (If the key is protected by a passphrase, then sslpassphrase must also be set in the config file)
 
 These can be set on command line (except sslpassphrase), in the pm2 ecosystem file (except sslpassphrase), or in a separate configuration file which is read by --config.
+
+To disable https, run with the option --no-ssl.
 
 ## Run tests
 
