@@ -31,6 +31,12 @@ requirejs.config({
 requirejs(['jquery'], function($) {
   'use strict';
   $(document).ready(function() {
+    $('#user-select').keypress(function(e) {
+      if (e.keyCode === 13) {
+        $('#user-viewer').click();
+      }
+    });
+
     $('#user-viewer').click(function() {
       var uname = $('#user-select').val();
       window.location = 'admin/user/' + uname + '/';
