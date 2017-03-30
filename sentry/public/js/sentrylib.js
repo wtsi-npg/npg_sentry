@@ -65,7 +65,7 @@ define(['jquery'], function($) {
     };
 
     $.post({
-      url: 'revokeToken',
+      url: window.location + 'revokeToken',
       data: JSON.stringify({token: token}),
       success: revokeSuccess,
       contentType: 'application/json',

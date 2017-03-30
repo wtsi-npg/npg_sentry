@@ -2,9 +2,12 @@
 
 <html>
   <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
     <meta charset="UTF-8">
     <title>npg_sentry: Admin</title>
-    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
   </head>
   <body>
     <div id="page">
@@ -13,10 +16,13 @@
       <button id="user-viewer">Go</button>
     </div>
 
-    <script type="application/javascript" src="/js/bower_components/requirejs/require.js"></script>
+    <script
+      type="application/javascript"
+      src="js/bower_components/requirejs/require.js">
+    </script>
     <script>
 requirejs.config({
-  baseUrl: '/js',
+  baseUrl: 'js',
   paths: {
     jquery: 'bower_components/jquery/dist/jquery'
   }
@@ -27,11 +33,10 @@ requirejs(['jquery'], function($) {
   $(document).ready(function() {
     $('#user-viewer').click(function() {
       var uname = $('#user-select').val();
-      window.location = 'user/' + uname + '/';
+      window.location = 'admin/user/' + uname + '/';
     });
   });
 });
     </script>
-
   </body>
 </html>

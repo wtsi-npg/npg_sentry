@@ -2,9 +2,12 @@
 
 <html>
   <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
     <meta charset="UTF-8">
     <title>Error</title>
-    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
   </head>
   <body>
     <div id="page">
@@ -16,4 +19,3 @@
     </div>
   </body>
 </html>
-

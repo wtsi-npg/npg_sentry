@@ -74,6 +74,17 @@ app.use(logger.connectLogger(logger, { level: 'auto' }));
 
 app.use(bodyParser.json());
 
+app.use(function setRelativeRoot(req, res, next) {
+  req.relativeRoot = req.originalUrl
+    // strip leading slash and trailing text, i.e.
+    // /example/path/404 => example/path/
+    .replace(/(^\/|[^\/]+$)/g, '')
+    // replace remaining text with ..
+    // example/path/     => ../../
+    .replace(/[^\/]+/g, '..');
+  next();
+});
+
 // if (opts.get('do-acls')) {
 admin_controller.setup(app);
 // }
@@ -81,7 +92,9 @@ admin_controller.setup(app);
 authorisation_controller.setup(app);
 
 app.get('/', function(req, res) {
-  res.render(path.join(__dirname, 'sentry/views', 'index'));
+  res.render(path.join(__dirname, 'sentry/views', 'index'), {
+    baseurl: req.relativeRoot
+  });
 });
 
 app.use(express.static(path.join(__dirname, 'sentry/public')));
@@ -90,7 +103,9 @@ app.use(function(req, res) {
   let statusCode = 404;
   res.status(statusCode)
      .render(path.join(__dirname, 'sentry/views', 'error'), {
-       err: 'Not Found', statusCode
+       err: 'Not Found',
+       statusCode,
+       baseurl: req.relativeRoot
      });
 });
 
@@ -109,7 +124,7 @@ app.use(function(err, req, res, next) {
   logger.error(err);
   res.status(statusCode).json({
     status: statusCode,
-    err:    errorMessage
+    err:    errorMessage,
   });
 });
 logger.debug('All routing and middleware registered');

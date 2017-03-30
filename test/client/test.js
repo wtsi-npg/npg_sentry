@@ -51,7 +51,7 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
       ];
 
       $.get = function mockAjax(opts) {
-        assert.strictEqual(opts.url, 'listTokens',
+        assert.strictEqual(opts.url, window.location + 'listTokens',
           'Makes request to /listTokens');
         opts.success(data, 'success');
 
@@ -163,14 +163,15 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         },
       ];
       $.get = function mockAjaxGet(opts) {
-        assert.strictEqual(opts.url, 'listTokens', 'Makes request to /listTokens');
+        assert.strictEqual(opts.url, window.location + 'listTokens',
+          'Makes request to /listTokens');
         opts.success(data, 'success');
       };
       setup.setupPage();
 
       var oldAjaxPost = $.post;
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, 'revokeToken',
+        assert.strictEqual(opts.url, window.location + 'revokeToken',
           'Makes POST request to /revokeToken');
         assert.strictEqual(opts.data, JSON.stringify({token: 'abc'}),
           'POST request data is JSON containing token to revoke');
@@ -203,7 +204,7 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         opts.success([], 'success');
       };
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, 'createToken',
+        assert.strictEqual(opts.url, window.location + 'createToken',
           'Makes POST request to /createToken');
         assert.strictEqual(
           $('#token-table').children('tbody').children('tr').length, 1,
