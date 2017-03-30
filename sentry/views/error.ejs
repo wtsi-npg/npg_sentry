@@ -11,11 +11,15 @@
   </head>
   <body>
     <div id="page">
+
+      <%- include('nav-comp'); %>
+
       <h2><%= statusCode; %></h2>
       <h4><%= err.toString(); %></h4>
       <% if (err.stack) { %>
       <%= '<p>' + err.stack.toString() + '</p>'; %>
       <% } %>
+
     </div>
   </body>
 </html>
