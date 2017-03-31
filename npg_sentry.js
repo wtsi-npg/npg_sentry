@@ -99,14 +99,17 @@ app.get('/', function(req, res) {
 
 app.use(express.static(path.join(__dirname, 'sentry/public')));
 
-app.use(function(req, res) {
-  let statusCode = 404;
-  res.status(statusCode)
-     .render(path.join(__dirname, 'sentry/views', 'error'), {
-       err: 'Not Found',
-       statusCode,
-       baseurl: req.relativeRoot
-     });
+app.use(function(req, res, next) {
+  let err = new Error('Resource not found');
+  err.statusCode = 404;
+  next(err);
+  //let statusCode = 404;
+  //res.status(statusCode)
+  //   .render(path.join(__dirname, 'sentry/views', 'error'), {
+  //     err: 'Not Found',
+  //     statusCode,
+  //     baseurl: req.relativeRoot
+  //   });
 });
 
 // 'next' is unused, but required for express to see this
@@ -122,9 +125,10 @@ app.use(function(err, req, res, next) {
     errorMessage = http.STATUS_CODES[statusCode];
   }
   logger.error(err);
-  res.status(statusCode).json({
-    status: statusCode,
-    err:    errorMessage,
+  res.status(statusCode).render(path.join(__dirname, 'sentry/views', 'error'), {
+    statusCode: statusCode,
+    err: errorMessage,
+    baseurl: req.relativeRoot,
   });
 });
 logger.debug('All routing and middleware registered');

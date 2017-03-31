@@ -588,6 +588,123 @@ describe('server', () => {
       }, done.fail);
     });
 
+    it('adds a user to recognised admins', (done) => {
+      let user = 'someuser@domain.com';
+      let targetUser = 'anotheruser@domain.com';
+
+      request.put({
+        url: `http://localhost:${SERVER_PORT}/admin/manage/addAdmin`,
+        headers: {
+          'content-type': 'application/json',
+          'x-remote-user': user,
+        },
+        body: JSON.stringify({user: targetUser}),
+      }, (err, res) => {
+        if (err) {
+          return done.fail(err);
+        }
+        expect(res.statusCode).toBe(200);
+
+        let acl_mid = require('../../lib/acl_mid');
+        acl_mid.p_acl.then((acl) => {
+          acl.userRoles(targetUser, (err, roles) => {
+            if (err) {
+              return done.fail(err);
+            }
+            expect(roles).toContain(constants.ACL_ROLE_ADMINISTRATOR);
+            done();
+          });
+        });
+      });
+    });
+
+    it('removes a user from admins', (done) => {
+      let user = 'someuser@domain.com';
+      let targetUser = 'anotheruser@domain.com';
+
+      try {
+        utils.create_test_acls(DB_PORT, targetUser, []);
+      } catch (e) {
+        return done.fail(e);
+      }
+
+      let acl_mid = require('../../lib/acl_mid');
+      acl_mid.p_acl.then((acl) => {
+        return acl.userRoles(targetUser);
+      }).then(function(roles) {
+        expect(roles).toContain(constants.ACL_ROLE_ADMINISTRATOR);
+      }).then(function() {
+        request.put({
+          url: `http://localhost:${SERVER_PORT}/admin/manage/removeAdmin`,
+          headers: {
+            'content-type': 'application/json',
+            'x-remote-user': user,
+          },
+          body: JSON.stringify({user: targetUser}),
+        }, (err, res) => {
+          if (err) {
+            return done.fail(err);
+          }
+          expect(res.statusCode).toBe(200);
+
+          acl_mid.p_acl.then((acl) => {
+            return acl.userRoles(targetUser);
+          }, function(err) {
+            return Promise.reject(done.fail(err));
+          })
+          .then(function(roles) {
+            expect(roles).not.toContain(constants.ACL_ROLE_ADMINISTRATOR);
+            done();
+          }, function(err) {
+            return Promise.reject(done.fail(err));
+          });
+        });
+      });
+    });
+
+    it('a user cannot remove themselves from being an admin', (done) => {
+      let user = 'anotheruser@domain.com';
+
+      try {
+        utils.create_test_acls(DB_PORT, user, []);
+      } catch (e) {
+        return done.fail(e);
+      }
+
+      let acl_mid = require('../../lib/acl_mid');
+      acl_mid.p_acl.then((acl) => {
+        return acl.userRoles(user);
+      }).then(function(roles) {
+        expect(roles).toContain(constants.ACL_ROLE_ADMINISTRATOR);
+      }).then(function() {
+        request.put({
+          url: `http://localhost:${SERVER_PORT}/admin/manage/removeAdmin`,
+          headers: {
+            'content-type': 'application/json',
+            'x-remote-user': user,
+          },
+          body: JSON.stringify({user: user}),
+        }, (err, res) => {
+          if (err) {
+            return done.fail(err);
+          }
+          expect(res.statusCode).toBe(400);
+
+          acl_mid.p_acl.then((acl) => {
+            return acl.userRoles(user);
+          }, function(err) {
+            return Promise.reject(done.fail(err));
+          })
+          .then(function(roles) {
+            expect(roles).toContain(constants.ACL_ROLE_ADMINISTRATOR);
+            done();
+          }, function(err) {
+            return Promise.reject(done.fail(err));
+          });
+        });
+      });
+    });
+
     it('renders admin interface', (done) => {
       let user = 'someuser@domain.com';
       let targetUser = 'anotheruser@domain.com';
@@ -627,6 +744,25 @@ describe('server', () => {
       });
     });
 
+    it('renders admin management page', (done) => {
+      let user = 'someuser@domain.com';
+      request.get({
+        url: `http://localhost:${SERVER_PORT}/admin/manage/`,
+        headers: {
+          "x-remote-user": user,
+        },
+      }, (err, res, body) => {
+        if (err) {
+          done.fail(err);
+        }
+
+        expect(res.statusCode).toBe(200);
+        expect(body).toMatch('<!DOCTYPE html>');
+        expect(body).toMatch('<title>Admin Management</title>');
+        done();
+      });
+    });
+
     describe('redirects to ensure correct url', () => {
       it('admin interface', (done) => {
         let user = 'someuser@domain.com';
@@ -653,6 +789,27 @@ describe('server', () => {
       it('admin landing page', (done) => {
         let user = 'someuser@domain.com';
         let urlPath = '/admin';
+        request.get({
+          url: `http://localhost:${SERVER_PORT}${urlPath}`,
+          headers: {
+            "x-remote-user": user,
+          },
+          followRedirect: false,
+        }, (err, res, body) => {
+          if (err) {
+            done.fail(err);
+          }
+
+          expect(res.statusCode).toBe(302);
+          expect(body).toMatch(http.STATUS_CODES[302]);
+          expect(res.headers['location']).toBe(urlPath + '/');
+          done();
+        });
+      });
+
+      it('admin management page', (done) => {
+        let user = 'someuser@domain.com';
+        let urlPath = '/admin/manage';
         request.get({
           url: `http://localhost:${SERVER_PORT}${urlPath}`,
           headers: {

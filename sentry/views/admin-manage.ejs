@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
+    <meta charset="UTF-8">
+    <title>Admin Management</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+  </head>
+  <body>
+    <div id="page">
+
+      <%- include('nav-comp'); %>
+
+      <h2>Enter a username to act upon</h2>
+
+      <%- include('error-comp'); %>
+
+      <input type="text" id="user-select">
+      <button id="user-make-admin">Make admin</button>
+      <button id="user-remove-admin">Remove admin</button>
+
+    </div>
+
+    <script
+      type="application/javascript"
+      src="js/bower_components/requirejs/require.js">
+    </script>
+    <script type="application/javascript">
+requirejs.config({
+  baseUrl: 'js',
+  paths: {
+    jquery: 'bower_components/jquery/dist/jquery'
+  }
+});
+
+requirejs(['jquery', 'sentrylib'], function($, sentrylib) {
+  'use strict';
+  $(document).ready(function() {
+
+    $('#user-select').keypress(function(e) {
+      if (e.keyCode === 13) {
+        $('#user-make-admin').click();
+      }
+    });
+
+    $('#user-make-admin').click(function() {
+      var uname = $('#user-select').val();
+      $.ajax({
+        url: window.location + 'addAdmin',
+        contentType: 'application/json',
+        data: '{"user":"' + uname + '"}',
+        error: function(jqXHR) {
+          sentrylib.showErrorMsg(
+            'Failed to add user as admin: ' + jqXHR.status + ' : ' + jqXHR.statusText);
+        },
+        method: 'PUT',
+        success: function() {
+          sentrylib.showSuccessMsg('Admin added!');
+        },
+      });
+    });
+
+    $('#user-remove-admin').click(function() {
+      var uname = $('#user-select').val();
+      $.ajax({
+        url: window.location + 'removeAdmin',
+        contentType: 'application/json',
+        data: '{"user":"' + uname + '"}',
+        error: function(jqXHR) {
+          sentrylib.showErrorMsg(
+            'Failed to remove user as admin: ' + jqXHR.status + ' : ' + jqXHR.statusText);
+        },
+        method: 'PUT',
+        success: function() {
+          sentrylib.showSuccessMsg('Admin removed!');
+        },
+      });
+    });
+  });
+});
+    </script>
+  </body>
+</html>

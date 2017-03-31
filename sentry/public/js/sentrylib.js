@@ -2,10 +2,19 @@ define(['jquery'], function($) {
   'use strict';
 
   function showErrorMsg(content) {
+    _showMsg(content, 'error-msg');
+  }
+
+  function showSuccessMsg(content) {
+    _showMsg(content, 'success-msg');
+  }
+
+  function _showMsg(content, cls) {
     var $div = $('<div></div>');
-    $div.addClass('error-div');
+    $div.addClass('msg-div');
     var $p = $('<p>' + content + '</p>');
-    $p.addClass('error-msg');
+    $p.addClass('msg');
+    $p.addClass(cls);
     $p.on('click', function() {
       $div.remove();
     });
@@ -102,5 +111,6 @@ define(['jquery'], function($) {
     revokeToken: revokeToken,
     parseQuery: parseQuery,
     showErrorMsg: showErrorMsg,
+    showSuccessMsg: showSuccessMsg,
   };
 });
