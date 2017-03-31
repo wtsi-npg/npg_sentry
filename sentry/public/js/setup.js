@@ -44,7 +44,7 @@ define(['jquery', 'clipboard', 'sentrylib'], function($, Clipboard, sentrylib) {
       }
     });
 
-    new Clipboard('.cp-btn', {
+    new Clipboard('.cp-btn-active', {
       target: function(trigger) {
         return trigger.parentNode.previousElementSibling;
       }

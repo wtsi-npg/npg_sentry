@@ -3,12 +3,14 @@ body {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
-button.disabled-btn {
+button.cp-btn-disabled {
   cursor: not-allowed;
 }
 
-button, button.disabled-btn:active {
-  margin-top: 25px;
+/* Also apply rule to clicked cp-btns which are disabled so that appearance
+ * does not change
+ */
+button, button.cp-btn-disabled:active {
   background: linear-gradient(to top right, #ccc, #eee);
   border: 1px solid #777;
   border-radius: 3px;
@@ -17,6 +19,7 @@ button, button.disabled-btn:active {
 }
 
 button {
+  margin-top: 25px;
   cursor: pointer;
 }
 
@@ -58,6 +61,10 @@ tr:nth-child(odd) {
 
 .big-button {
   font-size: 20px;
+}
+
+.cp-btn {
+  margin-top: 0px;
 }
 
 .disabled-row {

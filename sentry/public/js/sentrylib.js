@@ -44,9 +44,9 @@ define(['jquery'], function($) {
     var $cpBtnCell = $('<td></td>');
     var $cpBtn = $('<button></button>');
     if (valid) {
-      $cpBtn.addClass('cp-btn');
+      $cpBtn.addClass('cp-btn cp-btn-active');
     } else {
-      $cpBtn.addClass('disabled-btn');
+      $cpBtn.addClass('cp-btn cp-btn-disabled');
     }
     $cpBtn.text('Copy');
     $cpBtnCell.append($cpBtn);
