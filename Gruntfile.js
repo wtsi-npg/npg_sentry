@@ -65,6 +65,20 @@ module.exports = function(grunt) {
       all: ['test/client/test*.html']
     },
     jasmine_node: {
+      selenium: {
+        options: {
+          forceExit: true,
+          coverage: false,
+          jasmine: {
+            verbosity: 4,
+            spec_dir: 'test/selenium',
+            spec_files: [
+              '**/*spec.js'
+            ],
+          },
+        },
+        src: ['lib/**/*.js'],
+      },
       only_test: {
         options: {
           forceExit: true,
@@ -100,7 +114,36 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('test', ['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
-  grunt.registerTask('test_coverage', ['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
+  grunt.registerTask('selenium', () => {
+    if (!process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
+      grunt.log.error('Selenium only runs with latest node LTS! (currently v6)');
+    } else {
+      grunt.task.run('jasmine_node:selenium');
+    }
+  });
+
+  //grunt.registerTask('test',
+  //  ['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit', 'jasmine_node:selenium']);
+
+  grunt.registerTask('test', () => {
+    // Selenium only runs with latest LTS (currently v6) and may fail with older
+    if (process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
+      grunt.task.run(['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit', 'jasmine_node:selenium']);
+    } else {
+      grunt.log.writeln('Selenium only runs with latest node LTS (currently v6); skipping...');
+      grunt.task.run(['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
+    }
+  });
+
+  grunt.registerTask('test_coverage', () => {
+    // Selenium only runs with latest LTS (currently v6) and may fail with older
+    if (process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
+      grunt.task.run(['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit', 'jasmine_node:selenium']);
+    } else {
+      grunt.log.writeln('Selenium only runs with latest node LTS (currently v6); skipping...');
+      grunt.task.run(['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
+    }
+  });
+
   grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };

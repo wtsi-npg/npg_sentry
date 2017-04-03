@@ -4,13 +4,21 @@ node_js:
   - "4.7.2"
   - "6"
 
+cache:
+  directories:
+    - /tmp/mongodb
+    - /tmp/phantomjs
+
 env:
   global:
     - MONGODB_VERSION=3.2.4
+    - PHANTOMJS_VERSION=2.1.1
+
+before_install:
+  - export PATH="/tmp/mongodb/bin:/tmp/phantomjs/bin:$PATH"
 
 install:
   - ./.travis/install.sh
-  - export PATH="/tmp/usr/bin:${PATH}"
   - npm install -g npm@3.10.10
   - npm install -g grunt-cli@1.2.0
   - npm install -g bower@1.8.0
@@ -21,6 +29,7 @@ before_script:
   - node --version
   - npm --version
   - mongo --version
+  - phantomjs --version
 
 script:
   - if [ "${RUN_COVERAGE}" = "true" ]; then grunt -v test_coverage; else grunt -v; fi
