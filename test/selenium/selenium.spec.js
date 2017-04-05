@@ -138,34 +138,67 @@ describe('selenium tests', () => {
 
   it('token is created after clicking on create-token-button', done => {
     driver.wait(until.elementLocated(
-        By.js(`return $('td:contains(${user})')[0];`)));
-    driver.findElement(By.css('tbody')).then(found => {
-      expect(found).toBeDefined();
-      found.findElements(By.xpath('tr')).then(foundRows => {
-        expect(foundRows.length).toBe(2);
-        let tokenRow = foundRows[1];
+        By.js(`return $('td:contains(${user})')[0];`)), 2000);
+    driver.findElement(By.css('tbody')).then(tbody => {
+      expect(tbody).toBeDefined();
+      tbody.findElements(By.xpath('tr')).then(trs => {
+        expect(trs.length).toBe(2);
+        let tokenRow = trs[1]; // First will be table headers
         expect(tokenRow).toBeDefined();
-        tokenRow.findElements(By.xpath('td')).then(foundCols => {
-          expect(foundCols.length).toBe(5);
+        tokenRow.findElements(By.xpath('td')).then(cols => {
+          expect(cols.length).toBe(5);
           let ps = [];
-          ps.push(foundCols[0].getText().then(
+          ps.push(cols[0].getText().then(
             text => expect(text).toBe(user)
-          ));
-          ps.push(foundCols[1].getText().then(
+          , done.fail));
+          ps.push(cols[1].getText().then(
             text => expect(text).toMatch(/^[\w-]{32}$/)
-          ));
-          ps.push(foundCols[3].getText().then(
+          , done.fail));
+          ps.push(cols[3].getText().then(
             text => expect(text).toMatch('valid')
-          ));
-          ps.push(foundCols[4].getText().then(
+          , done.fail));
+          ps.push(cols[4].getText().then(
             text => expect(text).toMatch('Revoke')
-          ));
-          ps.push(foundCols[4].getAttribute('class').then(
+          , done.fail));
+          ps.push(cols[4].getAttribute('class').then(
             className => expect(className).toMatch('revoke-link')
-          ));
+          , done.fail));
           Promise.all(ps).then(done);
         }, done.fail);
       }, done.fail);
     }, done.fail);
+  });
+
+  it('token is revoked after clicking on revoke-link', done => {
+    driver.findElement(By.className('revoke-link')).click();
+    driver.wait(until.elementLocated(By.className('disabled-btn')), 2000);
+    driver.findElement(By.css('tbody')).then(tbody => {
+      expect(tbody).toBeDefined();
+      tbody.findElements(By.xpath('tr')).then(trs => {
+        expect(trs.length).toBe(2);
+        let tokenRow = trs[1]; // First will be table headers
+        expect(tokenRow).toBeDefined();
+        tokenRow.findElements(By.xpath('td')).then(cols => {
+          expect(cols.length).toBe(5);
+          let ps = [];
+          ps.push(cols[0].getText().then(
+            text => expect(text).toBe(user)
+          , done.fail));
+          ps.push(cols[1].getText().then(
+            text => expect(text).toMatch(/^[\w-]{32}$/)
+          , done.fail));
+          ps.push(cols[3].getText().then(
+            text => expect(text).toBe('revoked')
+          , done.fail));
+          ps.push(cols[4].getText().then(
+            text => expect(text).toBe('Revoke')
+          , done.fail));
+          ps.push(cols[4].getAttribute('class').then(
+            className => expect(className).toBeUndefined
+          , done.fail));
+          Promise.all(ps).then(done);
+        });
+      });
+    });
   });
 });
