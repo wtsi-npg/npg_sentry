@@ -91,6 +91,10 @@ app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
   let statusCode = err.statusCode || 500;
   let errorMessage = 'Unknown error';
+
+  if (err.message.match(/user is not defined/)) {
+    statusCode = 401;
+  }
   if ( http.STATUS_CODES[statusCode] ) {
     errorMessage = http.STATUS_CODES[statusCode];
   }
