@@ -78,17 +78,6 @@ describe('selenium tests', () => {
     });
   });
 
-  // Pending until I can find a way to set different headers for different
-  // requests.....
-  xit('error msg shown', done => {
-    driver.wait(until.elementLocated(By.className('error-msg')))
-      .getText().then(text => {
-        expect(text).toMatch(
-          'Error when getting token list: 500: Internal Server Error');
-        done();
-      });
-  });
-
   it('no tokens on initial load', done => {
     driver.findElement(By.css('tbody')).then(found => {
       found.findElements(By.xpath('tr')).then(founds => {
