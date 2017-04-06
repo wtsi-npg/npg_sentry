@@ -120,11 +120,58 @@ describe('selenium tests', () => {
       }, done.fail);
     });
 
+    it('toggled by clicking on show-token-form-button', done => {
+      let showTokenFormButton = driver.findElement(
+        By.id('show-token-form-button'));
+      let floatingDiv = driver.findElement(By.id('floating-div'));
+
+      showTokenFormButton.click();
+      driver.wait(until.elementIsNotVisible(floatingDiv), 2000).catch(done.fail);
+      let p_fdIsInvisible = floatingDiv.then(found => {
+        found.isDisplayed().then(isVisible => {
+          expect(isVisible).toBe(false);
+        }, done.fail);
+      }, done.fail);
+
+      p_fdIsInvisible.then(() => {
+        showTokenFormButton.click();
+        driver.wait(until.elementIsVisible(floatingDiv), 2000).catch(done.fail);
+        floatingDiv.then(found => {
+          found.isDisplayed().then(isVisible => {
+            expect(isVisible).toBe(true);
+            done();
+          }, done.fail);
+        }, done.fail);
+      }, done.fail);
+    });
+
+    it('closed by clicking on close-token-form-button', done => {
+      let floatingDiv = driver.findElement(By.id('floating-div'));
+
+      driver.findElement(By.id('close-token-form-button')).click();
+      driver.wait(until.elementIsNotVisible(floatingDiv), 2000).catch(done.fail);
+      floatingDiv.then(found => {
+        found.isDisplayed().then(isVisible => {
+          expect(isVisible).toBe(false);
+          done();
+        }, done.fail);
+      }, done.fail);
+    });
+
     it('invisible after clicking on create-token-button', done => {
+      let floatingDiv = driver.findElement(By.id('floating-div'));
+
+      driver.findElement(By.id('show-token-form-button')).click();
+      driver.wait(until.elementIsVisible(floatingDiv), 2000).catch(done.fail);
+      floatingDiv.then(found => {
+        found.isDisplayed().then(isVisible => {
+          expect(isVisible).toBe(true);
+        }, done.fail);
+      }, done.fail);
+
       let createTokenButton = driver.findElement(By.id('create-token-button'));
       driver.wait(until.elementIsVisible(createTokenButton), 2000).then(() => {
         createTokenButton.click();
-        let floatingDiv = driver.findElement(By.id('floating-div'));
         driver.wait(until.elementIsNotVisible(floatingDiv), 2000).catch(done.fail);
         floatingDiv.then(found => {
           found.isDisplayed().then(isVisible => {
