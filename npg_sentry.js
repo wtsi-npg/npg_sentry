@@ -3,8 +3,9 @@
 'use strict';
 
 /**
+ * @module npg_sentry
+ * @copyright 2017 Genome Research Ltd
  * @author Andrew Nowak
- * @copyright Genome Research Limited 2017
  */
 
 const config = require('./lib/config');
@@ -107,5 +108,11 @@ serv.listen(port);
 logger.info(`npg_sentry started on port ${port}`);
 
 if ( module.parent ) {
+  /**
+   * Server instance, with all middleware and routing loaded.
+   * Exported to allow server to be closed externally.
+   * @const
+   * @type {http.Server|https.Server}
+   */
   module.exports = serv;
 }

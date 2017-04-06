@@ -28,7 +28,14 @@ module.exports = function(grunt) {
       }
     },
     clean: {
-      coverage: [ 'coverage' ]
+      coverage: [ 'coverage' ],
+      docs: [ 'docs' ],
+    },
+    jsdoc: {
+      src: [ 'npg_sentry.js', 'lib/**/*.js' ],
+      options: {
+        destination: 'docs',
+      }
     },
     eslint: {
       target: [
