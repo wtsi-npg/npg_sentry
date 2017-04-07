@@ -114,36 +114,35 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
+  grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
+
   grunt.registerTask('selenium', () => {
-    if (!process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
-      grunt.log.error('Selenium only runs with latest node LTS! (currently v6)');
-    } else {
+    if (process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
       grunt.task.run('jasmine_node:selenium');
+    } else {
+      grunt.log.error('Selenium only runs with latest node LTS! (currently v6)');
     }
   });
 
-  //grunt.registerTask('test',
-  //  ['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit', 'jasmine_node:selenium']);
-
   grunt.registerTask('test', () => {
+    grunt.task.run(['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
+
     // Selenium only runs with latest LTS (currently v6) and may fail with older
     if (process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
-      grunt.task.run(['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit', 'jasmine_node:selenium']);
+      grunt.task.run('jasmine_node:selenium');
     } else {
       grunt.log.writeln('Selenium only runs with latest node LTS (currently v6); skipping...');
-      grunt.task.run(['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
     }
   });
 
   grunt.registerTask('test_coverage', () => {
+    grunt.task.run(['jsonlint', 'lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
     // Selenium only runs with latest LTS (currently v6) and may fail with older
     if (process.version.match(/^v6\.[\d]+\.[\d]+$/)) {
-      grunt.task.run(['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit', 'jasmine_node:selenium']);
+      grunt.task.run('jasmine_node:selenium');
     } else {
       grunt.log.writeln('Selenium only runs with latest node LTS (currently v6); skipping...');
-      grunt.task.run(['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
     }
   });
 
-  grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
 };
