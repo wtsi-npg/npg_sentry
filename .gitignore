@@ -11,3 +11,4 @@ MYMETA.json
 MYMETA.yml
 blib/
 docs/
+dist/

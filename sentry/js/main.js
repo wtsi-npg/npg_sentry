@@ -1,5 +1,5 @@
 requirejs.config({
-  baseUrl: 'js',
+  baseUrl: 'dist',
   paths: {
     jquery: 'bower_components/jquery/dist/jquery',
     clipboard: 'bower_components/clipboard/dist/clipboard'

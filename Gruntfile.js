@@ -8,27 +8,16 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    uglify: {
-      options: {
-        banner:
-          '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %>\n' +
-          ' * Copyright (C) 2017 Genome Research Ltd\n' +
-          ' */'
-      },
-      build: {
-        src: 'sentry/public/js/script.js',
-        dest: 'sentry/public/js/script.min.js'
-      }
-    },
     cssmin: {
       target: {
         files: {
-          'sentry/public/css/styles.min.css': 'sentry/public/css/styles.css'
+          'sentry/public/dist/styles.min.css': 'sentry/public/css/styles.css'
         }
       }
     },
     clean: {
       coverage: [ 'coverage' ],
+      dist: [ 'sentry/public/dist/*.js*', 'sentry/public/dist/*.css' ],
       docs: [ 'docs' ],
     },
     jsdoc: {
@@ -42,7 +31,7 @@ module.exports = function(grunt) {
         'Gruntfile.js',
         'npg_sentry.js',
         'lib/*.js',
-        'sentry/public/js/*.js',
+        'sentry/js/*.js',
         'test/**/*.js',
         '!**/*.min.js', // don't lint minified files
       ]
@@ -95,12 +84,40 @@ module.exports = function(grunt) {
         },
         src: ['lib/**/*.js']
       }
+    },
+    babel: {
+      options: {
+        sourceMap: true,
+        presets: ['env', 'babili']
+      },
+      dist: {
+        files: {
+          "sentry/public/dist/auth.js": "sentry/js/auth.js",
+          "sentry/public/dist/main.js": "sentry/js/main.js",
+        }
+      }
     }
   });
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('lint', ['eslint']);
-  grunt.registerTask('test', ['jsonlint', 'lint', 'jasmine_node:only_test', 'qunit']);
-  grunt.registerTask('test_coverage', ['lint', 'clean:coverage', 'jasmine_node:coverage', 'qunit']);
-  grunt.registerTask('minify', ['newer:uglify', 'newer:cssmin']);
+  grunt.registerTask('test',
+    [
+      'jsonlint',
+      'lint',
+      'jasmine_node:only_test',
+      'clean:dist',
+      'babel',
+      'qunit'
+    ]);
+  grunt.registerTask('test_coverage',
+    [
+      'lint',
+      'clean:coverage',
+      'jasmine_node:coverage',
+      'clean:dist',
+      'babel',
+      'qunit'
+    ]);
+  grunt.registerTask('dist', ['newer:babel', 'newer:cssmin']);
 };
