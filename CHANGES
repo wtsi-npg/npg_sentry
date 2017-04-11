@@ -1,6 +1,13 @@
+CHANGES
 
  - add admin pages and endpoints
  - add acl as dep
+ - add grunt-jsdoc@2.1.0 as dep
+ - jsdocs added
+
+ release 0.3.0
+ - upgrade body-parser to 1.17.1 from 1.17.0
+ - upgrade express to 4.15.2 from 4.15.0
  - move perl script to generate db to github
  - ssl defaults to on
  - new option --sslca

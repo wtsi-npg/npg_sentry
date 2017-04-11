@@ -3,8 +3,9 @@
 'use strict';
 
 /**
+ * @module npg_sentry
+ * @copyright 2017 Genome Research Ltd
  * @author Andrew Nowak
- * @copyright Genome Research Limited 2017
  */
 
 const config = require('./lib/config');
@@ -121,6 +122,10 @@ app.use(function(err, req, res, next) {
 /* eslint-enable no-unused-vars */
   let statusCode = err.statusCode || 500;
   let errorMessage = 'Unknown error';
+
+  if (err.message.match(/user is not defined/)) {
+    statusCode = 401;
+  }
   if ( http.STATUS_CODES[statusCode] ) {
     errorMessage = http.STATUS_CODES[statusCode];
   }
@@ -137,5 +142,11 @@ serv.listen(port);
 logger.info(`npg_sentry started on port ${port}`);
 
 if ( module.parent ) {
+  /**
+   * Server instance, with all middleware and routing loaded.
+   * Exported to allow server to be closed externally.
+   * @const
+   * @type {http.Server|https.Server}
+   */
   module.exports = serv;
 }
