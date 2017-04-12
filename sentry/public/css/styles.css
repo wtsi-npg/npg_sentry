@@ -3,12 +3,14 @@ body {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
-button.disabled-btn {
+button.cp-btn-disabled {
   cursor: not-allowed;
 }
 
-button, button.disabled-btn:active {
-  margin-top: 10%;
+/* Also apply rule to clicked cp-btns which are disabled so that appearance
+ * does not change
+ */
+button, button.cp-btn-disabled:active {
   background: linear-gradient(to top right, #ccc, #eee);
   border: 1px solid #777;
   border-radius: 3px;
@@ -17,6 +19,7 @@ button, button.disabled-btn:active {
 }
 
 button {
+  margin-top: 25px;
   cursor: pointer;
 }
 
@@ -60,23 +63,35 @@ tr:nth-child(odd) {
   font-size: 20px;
 }
 
+.cp-btn {
+  margin-top: 0px;
+}
+
 .disabled-row {
   opacity: 0.65;
 }
 
-.error-msg {
+.msg {
   display: inline-block;
-  border: 2px solid red;
-  background-color: #fdd;
   padding: 0px 8px;
   margin: 5px;
 }
 
-.error-msg:hover {
+.msg:hover {
   cursor: pointer;
 }
 
-.error-div {
+.error-msg {
+  border: 2px solid red;
+  background-color: #fdd;
+}
+
+.success-msg {
+  border: 2px solid green;
+  background-color: #dfd;
+}
+
+.msg-div {
   text-align: center;
 }
 

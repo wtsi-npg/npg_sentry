@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
+    <meta charset="UTF-8">
+    <title>Token Management</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+  </head>
+  <body>
+    <div id="page">
+
+      <%- include('nav-comp'); %>
+      <%- include('welcome-comp'); %>
+      <%- include('token-creation'); %>
+      <%- include('error-comp'); %>
+      <%- include('table-comp'); %>
+
+    </div>
+
+    <script
+      type="application/javascript"
+      data-main="js/main.js"
+      src="js/bower_components/requirejs/require.js">
+    </script>
+  </body>
+</html>

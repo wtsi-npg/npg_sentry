@@ -1,7 +1,5 @@
 'use strict';
 
-const child = require('child_process');
-
 const decache = require('decache');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
@@ -12,11 +10,12 @@ let BASE_PORT  = 9000;
 let PORT_RANGE = 200;
 let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
-const constants = require('../../lib/constants');
+const constants  = require('../../lib/constants');
+const test_utils = require('./test_utils');
 let config = require('../../lib/config');
 
-config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
-let model = require('../../lib/model');
+let dbConn;
+let model;
 
 let p_db;
 let tmpobj;
@@ -28,24 +27,18 @@ describe('model', function() {
 
   beforeAll(function(done) {
     // setup a mongo instance
+    config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
+    model = require('../../lib/model');
+    dbConn = require('../../lib/db_conn');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
+    test_utils.start_database(tmpdir, PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
     p_db.then(done);
   }, 25000);
 
   afterAll(function(done) {
-    child.execSync(
-      `mongo 'mongodb://localhost:${PORT}/admin' --eval 'db.shutdownServer()'`
-    );
-    console.log('\nMongoDB daemon has been switched off');
+    test_utils.stop_database(PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);
@@ -56,9 +49,9 @@ describe('model', function() {
 
   describe('DbError', function() {
     it('is a subclass of Error', function() {
-      let err = new model.DbError('something bad');
+      let err = new dbConn.DbError('something bad');
       expect(err.name).toBe('DbError');
-      expect(err instanceof model.DbError).toBe(true);
+      expect(err instanceof dbConn.DbError).toBe(true);
       expect(err instanceof Error).toBe(true);
       expect(require('util').isError(err)).toBe(true);
       expect(err.stack).toBeDefined();
@@ -69,14 +62,18 @@ describe('model', function() {
   describe('mongo connection error', function() {
     beforeAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://invalid:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     afterAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     it('is raised', function(done) {
@@ -91,7 +88,7 @@ describe('model', function() {
 
   describe('exported function', function() {
     beforeEach(function() {
-      child.execSync(`mongo 'mongodb://localhost:${PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+      test_utils.drop_database(PORT);
     });
 
     describe('createToken', function() {
@@ -306,7 +303,7 @@ describe('model', function() {
         p_revoke.then(function() {
           fail('Unexpectedly revoked token but token should not exist');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
@@ -465,11 +462,12 @@ describe('model', function() {
         let reqdGroups = ['1', '5'];
 
         model.validateUser(reqdGroups, user).then(function() {
-          fail();
+          done.fail('Validate user should have failed but succeded');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(constants.UNEXPECTED_NUM_DOCS);
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when groups field is missing', function(done) {
@@ -606,12 +604,12 @@ describe('model', function() {
       it('fails when token does not exist', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = ['1', '2', '3'];
 
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
         let p_userInsertion = p_userCollection.then(function(collection) {
-          return collection.insertOne({user, groups: ['1', '2', '3']});
+          return collection.insertOne({user, groups: reqdGroups});
         });
 
         let p_result = p_userInsertion.then(function() {
@@ -619,13 +617,14 @@ describe('model', function() {
         });
 
         p_result.then(function() {
-          fail();
+          done.fail('Validate token should have failed but succeded');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when token has been revoked', function(done) {

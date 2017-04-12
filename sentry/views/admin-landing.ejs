@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
+    <meta charset="UTF-8">
+    <title>npg_sentry: Admin</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+  </head>
+  <body>
+    <div id="page">
+
+      <%- include('nav-comp'); %>
+
+      <h2>Enter a username to act upon</h2>
+      <input type="text" id="user-select">
+      <button id="user-viewer">Go</button>
+    </div>
+
+    <script
+      type="application/javascript"
+      src="js/bower_components/requirejs/require.js">
+    </script>
+    <script>
+requirejs.config({
+  baseUrl: 'js',
+  paths: {
+    jquery: 'bower_components/jquery/dist/jquery'
+  }
+});
+
+requirejs(['jquery'], function($) {
+  'use strict';
+  $(document).ready(function() {
+    $('#user-select').keypress(function(e) {
+      if (e.keyCode === 13) {
+        $('#user-viewer').click();
+      }
+    });
+
+    $('#user-viewer').click(function() {
+      var uname = $('#user-select').val();
+      window.location = 'admin/user/' + uname + '/';
+    });
+  });
+});
+    </script>
+  </body>
+</html>

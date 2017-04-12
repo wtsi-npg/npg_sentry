@@ -1,6 +1,5 @@
 'use strict';
 
-const child = require('child_process');
 const https = require('https');
 
 const decache     = require('decache');
@@ -8,13 +7,14 @@ const fse         = require('fs-extra');
 const MongoClient = require('mongodb').MongoClient;
 const tmp         = require('tmp');
 
-const test_utils = require('./test_utils.js');
-let config       = require('../../lib/config');
+const test_utils  = require('./test_utils.js');
 
-let BASE_PORT   = 9000;
-let PORT_RANGE  = 200;
-let DB_PORT     = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
-let SERVER_PORT = DB_PORT + 1;
+let config        = require('../../lib/config');
+
+let BASE_PORT     = 9000;
+let PORT_RANGE    = 200;
+let DB_PORT       = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
+let SERVER_PORT   = DB_PORT + 1;
 
 let p_db;
 let tmpobj;
@@ -26,13 +26,7 @@ describe('secure server', function() {
     // setup a mongo instance
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${DB_PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${DB_PORT}`);
+    test_utils.start_database(tmpdir, DB_PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${DB_PORT}/test`);
     let p_certs = new Promise(function(resolve, reject) {
       test_utils.create_certificates(
@@ -81,10 +75,7 @@ describe('secure server', function() {
   }, 25000);
 
   afterAll(function(done) {
-    child.execSync(
-      `mongo 'mongodb://localhost:${DB_PORT}/admin' --eval 'db.shutdownServer()'`
-    );
-    console.log('\nMongoDB daemon has been switched off');
+    test_utils.stop_database(DB_PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);
@@ -144,8 +135,8 @@ describe('secure server', function() {
         ca: fse.readFileSync(tmpdir + '/certs/CA.cert'),
         key: fse.readFileSync(tmpdir + '/certs/selfsigned.key'),
         cert: fse.readFileSync(tmpdir + '/certs/selfsigned.cert'),
-      }, () => {
-        done.fail();
+      }, err => {
+        done.fail(err);
       });
       req.once('error', (err) => {
         expect(err).toMatch(/socket hang up/i);
