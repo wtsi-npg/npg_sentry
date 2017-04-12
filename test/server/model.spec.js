@@ -177,9 +177,7 @@ describe('model', function() {
           let secondTokenPromise = model.createToken(owner, user, 'test creation');
           expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
           return secondTokenPromise;
-        }, (err) => {
-          done.fail(err);
-        });
+        }, done.fail);
 
         p_insert2.then(() => { // second call
           expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
@@ -206,9 +204,7 @@ describe('model', function() {
           p_count.then(function(count) {
             expect(count).toBe(1);
             done();
-          }, (err) => {
-            done.fail(err);
-          });
+          }, done.fail);
         });
       });
 
