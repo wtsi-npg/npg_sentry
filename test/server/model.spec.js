@@ -95,11 +95,12 @@ describe('model', function() {
 
       [
         {user: 'owner1@example.com', owner: 'owner1@example.com'},
-        {user: 'admin@example.com', owner: 'owner2@example.com'}
+        {user: 'admin@example.com',  owner: 'owner2@example.com'}
       ].forEach(testValues => {
         it(`succeeds for ${JSON.stringify(testValues)}`, function(done) {
           let user  = testValues.user;
           let owner = testValues.owner;
+
           let p_insert = model.createToken(owner, user, 'test creation');
 
           let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
@@ -310,7 +311,7 @@ describe('model', function() {
         let tokenOwner    = 'owner@example.com';
         let operatingUser = 'user@example.com';
         let revokingUser  = 'bad@example.com';
-        let token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        let token         = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
