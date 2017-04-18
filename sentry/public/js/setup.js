@@ -4,17 +4,21 @@ define(['jquery', 'clipboard', 'sentrylib'], function($, Clipboard, sentrylib) {
   function setupPage() {
     var $floatdiv = $('#floating-div');
     $('#show-token-form-button').on('click', function() {
+      var $creationReason = $('#creation-reason');
+      if ($creationReason.length) {
+        $creationReason.val('');
+      }
       $floatdiv.toggle();
     });
     $('#close-token-form-button').on('click', function() {
-      $floatdiv.toggle(false);
+      $floatdiv.toggle();
     });
     $('#create-token-button').on('click', function() {
-      $floatdiv.toggle(false);
+      $floatdiv.toggle();
     });
 
     $('#create-token-button').on('click', function() {
-      $.post({
+      var postOpts = {
         url: window.location + 'createToken',
         success: function(data) {
           var $th = $('#table-headers');
@@ -25,7 +29,14 @@ define(['jquery', 'clipboard', 'sentrylib'], function($, Clipboard, sentrylib) {
           sentrylib.showErrorMsg(
             'Error when submitting token request: ' + jqXHR.status + ': ' + jqXHR.statusText);
         }
-      });
+      };
+      // test if #creation-reason text area exists, only in admin
+      if ( $('#creation-reason').length ) {
+        var creationReason = $('#creation-reason').val();
+        postOpts.data = '{"reason":"' + creationReason + '"}';
+        postOpts.contentType = 'application/json';
+      }
+      $.post(postOpts);
     });
 
     $.get({
@@ -52,7 +63,11 @@ define(['jquery', 'clipboard', 'sentrylib'], function($, Clipboard, sentrylib) {
 
     var query = sentrylib.parseQuery($(location).attr('href'));
     if (query.create) {
-      $floatdiv.toggle(true);
+      var $creationReason = $('#creation-reason');
+      if ($creationReason.length) {
+        $creationReason.val('');
+      }
+      $floatdiv.toggle();
     }
   }
   return {

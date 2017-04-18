@@ -228,6 +228,38 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
       $.post = oldAjaxPost;
     });
 
+    QUnit.test('Reason is passed as JSON body when entered', function(assert) {
+      assert.expect(3);
+
+      var newToken = {
+        token: 'mno',
+        status: 'valid',
+        user: 'reasoneduser@example.com',
+      };
+      var oldAjaxGet = $.get;
+      var oldAjaxPost = $.post;
+      $.get = function mockAjaxGet(opts) {
+        opts.success([], 'success');
+      };
+      $.post = function mockAjaxPost(opts) {
+        assert.strictEqual(opts.url, window.location + 'createToken',
+          'Makes POST request to /createToken');
+        assert.strictEqual(opts.data, '{"reason":"test reason"}',
+          'A reason is given');
+        opts.success(newToken, 'success');
+      };
+      setup.setupPage();
+
+      $('#show-token-form-button').triggerHandler('click');
+      assert.strictEqual($('#floating-div').css('display'), 'block',
+        'Click \'Create token\' shows token creation menu');
+      $('#creation-reason').val('test reason');
+      $('#create-token-button').triggerHandler('click');
+
+      $.get = oldAjaxGet;
+      $.post = oldAjaxPost;
+    });
+
     QUnit.start();
   }
 
