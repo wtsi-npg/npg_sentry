@@ -1,10 +1,74 @@
 "use strict";
 
-const fse = require('fs-extra');
-const pem = require('pem');
+const child = require('child_process');
+const fse   = require('fs-extra');
+const pem   = require('pem');
+
+const constants = require('../../lib/constants');
 
 const KEY_EXT  = 'key';
 const CERT_EXT = 'cert';
+
+/**
+ * Start a temporary mongo database with tmpdir as root filesystem and listening
+ * in port
+ * @param  {String} tmpdir Path to use as system root for the DB
+ * @param  {Number} port   Port where to listen
+ */
+let start_database = ( tmpdir, port ) => {
+  let command =
+    `mongod --port ${port} --fork --dbpath ${tmpdir} ` +
+    `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
+  console.log(`\nStarting MongoDB daemon: ${command}`);
+  let out = child.execSync(command);
+  console.log(`MongoDB daemon started: ${out}`);
+  child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${port}`);
+};
+
+/**
+ * Stop database running in port
+ * @param  {Number} port Port where database is listening
+ */
+let stop_database = ( port ) => {
+  child.execSync(
+    `mongo 'mongodb://localhost:${port}/admin' --eval 'db.shutdownServer()'`
+  );
+  console.log('\nMongoDB daemon has been switched off');
+};
+
+/**
+ * Drop all collections from database
+ * @param  {Number} port Port where database is listening
+ */
+let drop_database = ( port ) => {
+  child.execSync(
+    `mongo 'mongodb://localhost:${port}/test' --eval 'db.dropDatabase()'`
+  );
+  console.log('\nDropped all collections from MongoDB');
+};
+
+/**
+ * Invokes the create-admin script.
+ * @param  {Number} port Port where database is listening
+ * @param  {String} username User to add to administrator role
+ * @param  {String[]} permissions Array of permissions for administrator role
+ */
+let create_test_acls = (port, username, permissions) => {
+  for (let perm of permissions) {
+    child.execSync(
+      './scripts/create-admin.js' +
+      ` --mongourl 'mongodb://localhost:${port}/test'` +
+      ` --type "role" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+      ` --permission "${perm}"`
+    );
+  }
+  child.execSync(
+    './scripts/create-admin.js' +
+    ` --mongourl 'mongodb://localhost:${port}/test'` +
+    ` --type "user" --role "${constants.ACL_ROLE_ADMINISTRATOR}"` +
+    ` --username "${username}"`
+  );
+};
 
 /**
  * Creates a self signed certificate and saves the certificate and its key to
@@ -130,5 +194,9 @@ let getCollection = (collName) => {
 module.exports = {
   create_certificates,
   create_self_signed_cert,
-  getCollection
+  create_test_acls,
+  getCollection,
+  start_database,
+  stop_database,
+  drop_database,
 };

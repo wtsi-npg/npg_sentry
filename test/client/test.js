@@ -7,7 +7,7 @@ requirejs.config({
   },
 });
 
-requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
+requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, sentrylib) {
   'use strict';
 
   QUnit.config.autostart = false;
@@ -17,7 +17,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
     QUnit.test('Can toggle token creation form visibility', function(assert) {
       assert.expect(3);
 
-      auth.setupPage();
+      setup.setupPage();
 
       assert.strictEqual($('#floating-div').css('display'), 'none',
         'Token creation menu starts hidden');
@@ -51,7 +51,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
       ];
 
       $.get = function mockAjax(opts) {
-        assert.strictEqual(opts.url, 'listTokens',
+        assert.strictEqual(opts.url, window.location + 'listTokens',
           'Makes request to /listTokens');
         opts.success(data, 'success');
 
@@ -67,7 +67,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
         $('#token-table').children('tbody').children('tr').length, 1,
         'Table is empty before request to /listTokens'
       );
-      auth.setupPage();
+      setup.setupPage();
       $.get = oldAjaxGet;
     });
 
@@ -77,7 +77,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
       assert.strictEqual(
         $('#error-container').children().length, 0,
         'Error container is empty at start');
-      auth.showErrorMsg('test error');
+      sentrylib.showErrorMsg('test error');
       assert.strictEqual(
         $('#error-container').children().length, 1,
         'Error container has an error after showErrorMsg');
@@ -90,7 +90,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
       $.get = function mockAjaxPost(opts) {
         opts.error({status: 500, statusText: '/listTokens test error'});
       };
-      auth.setupPage();
+      setup.setupPage();
 
       assert.strictEqual(
         $('#error-container').children().length, 1,
@@ -125,7 +125,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
         user: 'user@example.com',
       };
       var $th = $('#table-headers');
-      var $row = auth.generateTokenRow($('<tr></tr>'), data);
+      var $row = sentrylib.generateTokenRow($('<tr></tr>'), data);
       $th.after($row);
 
       var oldAjaxPost = $.post;
@@ -163,14 +163,15 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
         },
       ];
       $.get = function mockAjaxGet(opts) {
-        assert.strictEqual(opts.url, 'listTokens', 'Makes request to /listTokens');
+        assert.strictEqual(opts.url, window.location + 'listTokens',
+          'Makes request to /listTokens');
         opts.success(data, 'success');
       };
-      auth.setupPage();
+      setup.setupPage();
 
       var oldAjaxPost = $.post;
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, 'revokeToken',
+        assert.strictEqual(opts.url, window.location + 'revokeToken',
           'Makes POST request to /revokeToken');
         assert.strictEqual(opts.data, JSON.stringify({token: 'abc'}),
           'POST request data is JSON containing token to revoke');
@@ -203,7 +204,7 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
         opts.success([], 'success');
       };
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, 'createToken',
+        assert.strictEqual(opts.url, window.location + 'createToken',
           'Makes POST request to /createToken');
         assert.strictEqual(
           $('#token-table').children('tbody').children('tr').length, 1,
@@ -216,11 +217,43 @@ requirejs(['qunit', 'jquery', 'auth'], function(QUnit, $, auth) {
           'Table contains new token after request to /createTokens'
         );
       };
-      auth.setupPage();
+      setup.setupPage();
 
       $('#show-token-form-button').triggerHandler('click');
       assert.strictEqual($('#floating-div').css('display'), 'block',
         'Click \'Create token\' shows token creation menu');
+      $('#create-token-button').triggerHandler('click');
+
+      $.get = oldAjaxGet;
+      $.post = oldAjaxPost;
+    });
+
+    QUnit.test('Reason is passed as JSON body when entered', function(assert) {
+      assert.expect(3);
+
+      var newToken = {
+        token: 'mno',
+        status: 'valid',
+        user: 'reasoneduser@example.com',
+      };
+      var oldAjaxGet = $.get;
+      var oldAjaxPost = $.post;
+      $.get = function mockAjaxGet(opts) {
+        opts.success([], 'success');
+      };
+      $.post = function mockAjaxPost(opts) {
+        assert.strictEqual(opts.url, window.location + 'createToken',
+          'Makes POST request to /createToken');
+        assert.strictEqual(opts.data, '{"reason":"test reason"}',
+          'A reason is given');
+        opts.success(newToken, 'success');
+      };
+      setup.setupPage();
+
+      $('#show-token-form-button').triggerHandler('click');
+      assert.strictEqual($('#floating-div').css('display'), 'block',
+        'Click \'Create token\' shows token creation menu');
+      $('#creation-reason').val('test reason');
       $('#create-token-button').triggerHandler('click');
 
       $.get = oldAjaxGet;

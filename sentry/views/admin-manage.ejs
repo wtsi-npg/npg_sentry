@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
+    <meta charset="UTF-8">
+    <title>Admin Management</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+  </head>
+  <body>
+    <div id="page">
+
+      <%- include('nav-comp'); %>
+
+      <h2>Enter a username to act upon</h2>
+
+      <%- include('error-comp'); %>
+
+      <input type="text" id="user-select">
+      <button id="user-make-admin">Make admin</button>
+      <button id="user-remove-admin">Remove admin</button>
+
+    </div>
+
+    <script
+      type="application/javascript"
+      data-main="js/admin-manage.js"
+      src="js/bower_components/requirejs/require.js">
+    </script>
+  </body>
+</html>

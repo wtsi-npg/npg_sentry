@@ -1,11 +1,20 @@
-define(['jquery', 'clipboard'], function($, Clipboard) {
+define(['jquery'], function($) {
   'use strict';
 
   function showErrorMsg(content) {
+    _showMsg(content, 'error-msg');
+  }
+
+  function showSuccessMsg(content) {
+    _showMsg(content, 'success-msg');
+  }
+
+  function _showMsg(content, cls) {
     var $div = $('<div></div>');
-    $div.addClass('error-div');
+    $div.addClass('msg-div');
     var $p = $('<p>' + content + '</p>');
-    $p.addClass('error-msg');
+    $p.addClass('msg');
+    $p.addClass(cls);
     $p.on('click', function() {
       $div.remove();
     });
@@ -35,9 +44,9 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     var $cpBtnCell = $('<td></td>');
     var $cpBtn = $('<button></button>');
     if (valid) {
-      $cpBtn.addClass('cp-btn');
+      $cpBtn.addClass('cp-btn cp-btn-active');
     } else {
-      $cpBtn.addClass('disabled-btn');
+      $cpBtn.addClass('cp-btn cp-btn-disabled');
     }
     $cpBtn.text('Copy');
     $cpBtnCell.append($cpBtn);
@@ -65,7 +74,7 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     };
 
     $.post({
-      url: 'revokeToken',
+      url: window.location + 'revokeToken',
       data: JSON.stringify({token: token}),
       success: revokeSuccess,
       contentType: 'application/json',
@@ -85,6 +94,8 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
       var kv = element.split('=');
       if (query[kv[0]] === undefined) {
         query[kv[0]] = kv[1] === undefined ? true : kv[1];
+      } else if (query[kv[0]] instanceof Array) {
+        query[kv[0]].push(kv[1]);
       } else {
         query[kv[0]] = [query[kv[0]], kv[1]];
       }
@@ -93,67 +104,13 @@ define(['jquery', 'clipboard'], function($, Clipboard) {
     return query;
   }
 
-  function setupPage() {
-    var $floatdiv = $('#floating-div');
-    $('#show-token-form-button').on('click', function() {
-      $floatdiv.toggle();
-    });
-    $('#close-token-form-button').on('click', function() {
-      $floatdiv.toggle(false);
-    });
-    $('#create-token-button').on('click', function() {
-      $floatdiv.toggle(false);
-    });
-
-    $('#create-token-button').on('click', function() {
-      $.post({
-        url: 'createToken',
-        success: function(data) {
-          var $th = $('#table-headers');
-          var $row = generateTokenRow($('<tr></tr>'), data);
-          $th.after($row);
-        },
-        error: function(jqXHR) {
-          showErrorMsg(
-            'Error when submitting token request: ' + jqXHR.status + ': ' + jqXHR.statusText);
-        }
-      });
-    });
-
-    $.get({
-      url: 'listTokens',
-      success: function(data) {
-        var $table = $('#token-table');
-        data.forEach(function(doc) {
-          var $row = $('<tr></tr>');
-          $row = generateTokenRow($row, doc);
-          $table.append($row);
-        });
-      },
-      error: function(jqXHR) {
-        showErrorMsg(
-          'Error when getting token list: ' + jqXHR.status + ': ' + jqXHR.statusText);
-      }
-    });
-
-    new Clipboard('.cp-btn', {
-      target: function(trigger) {
-        return trigger.parentNode.previousElementSibling;
-      }
-    });
-
-    var query = parseQuery($(location).attr('href'));
-    if (query.create) {
-      $floatdiv.toggle(true);
-    }
-  }
 
   return {
     addValueToRow: addValueToRow,
     generateTokenRow: generateTokenRow,
     revokeToken: revokeToken,
     parseQuery: parseQuery,
-    setupPage: setupPage,
     showErrorMsg: showErrorMsg,
+    showSuccessMsg: showSuccessMsg,
   };
 });

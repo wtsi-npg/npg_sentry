@@ -15,9 +15,9 @@ requirejs.onError = function(err) {
   throw err;
 };
 
-requirejs(['jquery', 'auth'], function($, auth) {
+requirejs(['jquery', 'setup'], function($, setup) {
   'use strict';
   $(document).ready(function() {
-    auth.setupPage();
+    setup.setupPage();
   });
 });

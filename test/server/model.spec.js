@@ -1,7 +1,5 @@
 'use strict';
 
-const child = require('child_process');
-
 const decache = require('decache');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
@@ -12,11 +10,12 @@ let BASE_PORT  = 9000;
 let PORT_RANGE = 200;
 let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
-const constants = require('../../lib/constants');
+const constants  = require('../../lib/constants');
+const test_utils = require('./test_utils');
 let config = require('../../lib/config');
 
-config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
-let model = require('../../lib/model');
+let dbConn;
+let model;
 
 let p_db;
 let tmpobj;
@@ -28,24 +27,18 @@ describe('model', function() {
 
   beforeAll(function(done) {
     // setup a mongo instance
+    config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
+    model = require('../../lib/model');
+    dbConn = require('../../lib/db_conn');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
     tmpdir = tmpobj.name;
-    let command =
-      `mongod --port ${PORT} --fork --dbpath ${tmpdir} ` +
-      `--logpath ${tmpdir}/test_db.log --bind_ip 127.0.0.1`;
-    console.log(`\nStarting MongoDB daemon: ${command}`);
-    let out = child.execSync(command);
-    console.log(`MongoDB daemon started: ${out}`);
-    child.execSync(`./test/scripts/wait-for-it.sh -q -h 127.0.0.1 -p ${PORT}`);
+    test_utils.start_database(tmpdir, PORT);
     p_db = MongoClient.connect(`mongodb://localhost:${PORT}/test`);
     p_db.then(done);
   }, 25000);
 
   afterAll(function(done) {
-    child.execSync(
-      `mongo 'mongodb://localhost:${PORT}/admin' --eval 'db.shutdownServer()'`
-    );
-    console.log('\nMongoDB daemon has been switched off');
+    test_utils.stop_database(PORT);
     fse.remove(tmpdir, function(err) {
       if (err) {
         console.log(`Error removing ${tmpdir}: ${err}`);
@@ -56,9 +49,9 @@ describe('model', function() {
 
   describe('DbError', function() {
     it('is a subclass of Error', function() {
-      let err = new model.DbError('something bad');
+      let err = new dbConn.DbError('something bad');
       expect(err.name).toBe('DbError');
-      expect(err instanceof model.DbError).toBe(true);
+      expect(err instanceof dbConn.DbError).toBe(true);
       expect(err instanceof Error).toBe(true);
       expect(require('util').isError(err)).toBe(true);
       expect(err.stack).toBeDefined();
@@ -69,14 +62,18 @@ describe('model', function() {
   describe('mongo connection error', function() {
     beforeAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://invalid:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     afterAll(function() {
       decache('../../lib/model');
+      decache('../../lib/db_conn');
       config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
       model = require('../../lib/model');
+      dbConn = require('../../lib/db_conn');
     });
 
     it('is raised', function(done) {
@@ -91,96 +88,114 @@ describe('model', function() {
 
   describe('exported function', function() {
     beforeEach(function() {
-      child.execSync(`mongo 'mongodb://localhost:${PORT}/test' --eval "db.tokens.drop();db.users.drop();"`);
+      test_utils.drop_database(PORT);
     });
 
     describe('createToken', function() {
 
-      it('succeeds', function(done) {
-        let user = 'user@example.com';
-        let p_insert = model.createToken(user, 'test creation');
+      [
+        {user: 'owner1@example.com', owner: 'owner1@example.com'},
+        {user: 'admin@example.com',  owner: 'owner2@example.com'}
+      ].forEach(testValues => {
+        it(`succeeds for ${JSON.stringify(testValues)}`, function(done) {
+          let user  = testValues.user;
+          let owner = testValues.owner;
 
-        let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
+          let p_insert = model.createToken(owner, user, 'test creation');
 
-        let p_cursor = p_collection.then(function(collection) {
-          return p_insert.then(function() {
-            return new Promise(function(resolve, reject) {
-              try {
-                resolve(collection.find({user}));
-              } catch (err) {
-                fail(err);
-                reject(err);
-              }
+          let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
+
+          let p_cursor = p_collection.then(function(collection) {
+            return p_insert.then(function() {
+              return new Promise(function(resolve, reject) {
+                try {
+                  resolve(collection.find({user: owner}));
+                } catch (err) {
+                  fail(err);
+                  reject(err);
+                }
+              });
             });
           });
-        });
 
-        let p_count = p_cursor.then(function(cursor) {
-          cursor.rewind();
-          return cursor.count();
-        });
+          let p_count = p_cursor.then(function(cursor) {
+            cursor.rewind();
+            return cursor.count();
+          });
 
-        let p_countExpectation = p_count.then(function(count) {
-          expect(count).toBe(1);
-        });
+          let p_countExpectation = p_count.then(function(count) {
+            expect(count).toBe(1);
+          });
 
-        let p_doc = p_cursor.then(function(cursor) {
-          cursor.rewind();
-          return cursor.next();
-        });
+          let p_doc = p_cursor.then(function(cursor) {
+            cursor.rewind();
+            return cursor.next();
+          });
 
-        let p_insertTest = p_insert.then(function(doc) {
+          let test_doc = function(doc) {
+            expect(doc).toBeDefined();
+            expect(doc.user).toBe(owner);
+            expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
+            expect(doc.status).toBe(constants.TOKEN_STATUS_VALID);
+            expect(moment(doc.expiryTime).isValid()).toBe(true);
+            expect(moment(doc.expiryTime)
+              .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
+            // hist record
+            expect(doc.hist).toBeDefined();
+            expect(doc.hist.length).toBe(1);
+            let hist = doc.hist[0];
+            expect(moment(hist.time)
+              .isBetween(moment().subtract(5, 'seconds'), moment())).toBe(true);
+            expect(hist.operating_user).toBe(user);
+            expect(hist.operation).toBe(constants.TOKEN_OPERATION_CREATE);
+            expect(hist.reason).toBe('test creation');
+          };
+
           // test document returned by createToken
-          expect(doc).toBeDefined();
-          expect(doc.user).toBe(user);
-          expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
-          expect(doc.status).toBe(constants.TOKEN_STATUS_VALID);
-          expect(moment(doc.issueTime).isValid()).toBe(true);
-          expect(doc.creationReason).toBe('test creation');
-          expect(moment(doc.expiryTime).isValid()).toBe(true);
-          expect(moment(doc.expiryTime)
-            .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
-        });
+          let p_insertTest = p_insert.then(test_doc);
 
-        let p_docExpectation = p_doc.then(function(doc) {
           // test document inserted into database
-          expect(doc).toBeDefined();
-          expect(doc.user).toBe(user);
-          expect(doc.token).toMatch(/^[a-zA-Z0-9_-]{32}$/gm);
-          expect(doc.status).toBe(constants.TOKEN_STATUS_VALID);
-          expect(moment(doc.issueTime).isValid()).toBe(true);
-          expect(doc.creationReason).toBe('test creation');
-          expect(moment(doc.expiryTime).isValid()).toBe(true);
-          expect(moment(doc.expiryTime)
-            .isBetween(moment().add(7, 'days').subtract(5, 'seconds'), moment().add(7, 'days'))).toBe(true);
-        });
+          let p_docExpectation = p_doc.then(test_doc);
 
-        Promise.all([p_countExpectation, p_docExpectation, p_insertTest])
-        .then(done, done.fail);
+          Promise.all([p_countExpectation, p_docExpectation, p_insertTest])
+          .then(done, done.fail);
+        });
       });
 
       it('rejects with invalid parameters', function(done) {
         let ps = [];
 
         ps.push(model.createToken().then(function() {
+          return Promise.reject('Unexpectedly created token but tokenOwner is not defined');
+        }, function (reason) {
+          expect(reason).toMatch(/createToken: tokenOwner is not defined/i);
+        }));
+
+        ps.push(model.createToken(1).then(function() {
+          return Promise.reject('Unexpectedly created token but tokenOwner is not a string');
+        }, function (reason) {
+          expect(reason).toMatch(/createToken: tokenOwner must be a string/i);
+        }));
+
+        ps.push(model.createToken('someOwner').then(function() {
           return Promise.reject('Unexpectedly created token but user is not defined');
         }, function (reason) {
           expect(reason).toMatch(/createToken: user is not defined/i);
         }));
 
-        ps.push(model.createToken(1).then(function() {
+        ps.push(model.createToken('someOwner', 1).then(function() {
           return Promise.reject('Unexpectedly created token but user is not a string');
         }, function (reason) {
           expect(reason).toMatch(/createToken: user must be a string/i);
         }));
 
-        ps.push(model.createToken('user').then(function() {
+        ps.push(model.createToken('someOwner', 'user').then(function() {
           return Promise.reject('Unexpectedly created token but justification is not defined');
         }, function (reason) {
           expect(reason).toMatch(/createToken: justification is not defined/i);
         }));
 
-        ps.push(model.createToken('user', 1).then(function() {
+        ps.push(model.createToken('someOwner', 'user', 1).then(function() {
           return Promise.reject('Unexpectedly created token but justification is not a string');
         }, function (reason) {
           expect(reason).toMatch(/createToken: justification must be a string/i);
@@ -194,19 +209,21 @@ describe('model', function() {
     describe('revokeToken', function() {
 
       it('succeeds on existing token', function(done) {
-        let user = 'user@example.com';
+        let owner = 'owner@example.com';
+        let user  = 'user@example.com';
         let token = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
         let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
         let p_insertion = p_collection.then(function(collection) {
           return collection.insertOne({
-            user, token, status: constants.TOKEN_STATUS_VALID
-          });
+            user: owner, token, status: constants.TOKEN_STATUS_VALID, hist: [
+              {time: moment().format(), reason: 'insertion to test revokeToken'}
+          ]});
         });
 
         let p_revoke = p_insertion.then(function() {
-          return model.revokeToken(user, token, 'Test revocation');
+          return model.revokeToken(owner, user, token, 'Test revocation');
         });
 
         let p_cursor = p_revoke.then(function() {
@@ -221,9 +238,18 @@ describe('model', function() {
 
         p_doc.then(function(doc) {
           expect(doc).toBeDefined();
-          expect(doc.user).toBe(user);
+          expect(doc.user).toBe(owner);
           expect(doc.token).toBe(token);
           expect(doc.status).toBe(constants.TOKEN_STATUS_REVOKED);
+          // expect token revocation to be second element of list
+          expect(doc.hist).toBeDefined();
+          expect(doc.hist.length).toBe(2);
+          let hist = doc.hist[1];
+          expect(moment(hist.time)
+            .isBetween(moment().subtract(5, 'seconds'), moment())).toBe(true);
+          expect(hist.operating_user).toBe(user);
+          expect(hist.operation).toBe(constants.TOKEN_OPERATION_REVOKE);
+          expect(hist.reason).toBe('Test revocation');
         }).then(done, done.fail);
       });
 
@@ -231,36 +257,48 @@ describe('model', function() {
         let ps = [];
 
         ps.push(model.revokeToken().then(function() {
+          return Promise.reject('Unexpectedly revoked token but tokenOwner is not defined');
+        }, function (reason) {
+          expect(reason).toMatch(/revokeToken: tokenOwner is not defined/i);
+        }));
+
+        ps.push(model.revokeToken(1).then(function() {
+          return Promise.reject('Unexpectedly revoked token but tokenOwner is not a string');
+        }, function (reason) {
+          expect(reason).toMatch(/revokeToken: tokenOwner must be a string/i);
+        }));
+
+        ps.push(model.revokeToken('someOwner').then(function() {
           return Promise.reject('Unexpectedly revoked token but user is not defined');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: user is not defined/i);
         }));
 
-        ps.push(model.revokeToken(1).then(function() {
+        ps.push(model.revokeToken('someOwner', 1).then(function() {
           return Promise.reject('Unexpectedly revoked token but user is not a string');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: user must be a string/i);
         }));
 
-        ps.push(model.revokeToken('user').then(function() {
+        ps.push(model.revokeToken('someOwner', 'user').then(function() {
           return Promise.reject('Unexpectedly revoked token but token is not defined');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: token is not defined/i);
         }));
 
-        ps.push(model.revokeToken('user', 1).then(function() {
+        ps.push(model.revokeToken('someOwner', 'user', 1).then(function() {
           return Promise.reject('Unexpectedly revoked token but token is not a string');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: token must be a string/i);
         }));
 
-        ps.push(model.revokeToken('user', 'token').then(function() {
+        ps.push(model.revokeToken('someOwner', 'user', 'token').then(function() {
           return Promise.reject('Unexpectedly revoked token but justification is not defined');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: justification is not defined/i);
         }));
 
-        ps.push (model.revokeToken('user', 'token', 1).then(function() {
+        ps.push (model.revokeToken('someOwner', 'user', 'token', 1).then(function() {
           return Promise.reject('Unexpectedly revoked token but justification is not a string');
         }, function (reason) {
           expect(reason).toMatch(/revokeToken: justification must be a string/i);
@@ -270,20 +308,21 @@ describe('model', function() {
       });
 
       it('fails when users do not match', function(done) {
-        let creatingUser = 'user@example.com';
-        let revokingUser = 'bad@example.com';
-        let token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        let tokenOwner    = 'owner@example.com';
+        let operatingUser = 'user@example.com';
+        let revokingUser  = 'bad@example.com';
+        let token         = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
         let p_insertion = p_collection.then(function(collection) {
           return collection.insertOne({
-            creatingUser, token, status: constants.TOKEN_STATUS_VALID
+            tokenOwner, token, status: constants.TOKEN_STATUS_VALID
           });
         });
 
         let p_revoke = p_insertion.then(function() {
-          return model.revokeToken(revokingUser, token, 'Test revocation');
+          return model.revokeToken(revokingUser, operatingUser, token, 'Test revocation');
         });
 
         p_revoke.then(function() {
@@ -300,13 +339,13 @@ describe('model', function() {
         let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
         let p_revoke = p_collection.then(function() {
-          return model.revokeToken(user, token, 'Test revocation');
+          return model.revokeToken(user, user, token, 'Test revocation');
         });
 
         p_revoke.then(function() {
           fail('Unexpectedly revoked token but token should not exist');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
@@ -465,11 +504,12 @@ describe('model', function() {
         let reqdGroups = ['1', '5'];
 
         model.validateUser(reqdGroups, user).then(function() {
-          fail();
+          done.fail('Validate user should have failed but succeded');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(constants.UNEXPECTED_NUM_DOCS);
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when groups field is missing', function(done) {
@@ -606,12 +646,12 @@ describe('model', function() {
       it('fails when token does not exist', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = ['1', '2', '3'];
 
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
         let p_userInsertion = p_userCollection.then(function(collection) {
-          return collection.insertOne({user, groups: ['1', '2', '3']});
+          return collection.insertOne({user, groups: reqdGroups});
         });
 
         let p_result = p_userInsertion.then(function() {
@@ -619,13 +659,14 @@ describe('model', function() {
         });
 
         p_result.then(function() {
-          fail();
+          done.fail('Validate token should have failed but succeded');
         }, function(reason) {
-          expect(reason instanceof model.DbError).toBe(true);
+          expect(reason instanceof dbConn.DbError).toBe(true);
           expect(reason.message).toBe(
             constants.UNEXPECTED_NUM_DOCS
           );
-        }).then(done, done.fail);
+          done();
+        });
       });
 
       it('successfully returns false when token has been revoked', function(done) {

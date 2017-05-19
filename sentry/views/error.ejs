@@ -2,18 +2,24 @@
 
 <html>
   <head>
+    <% if (locals.baseurl) { %>
+    <base href="<%- locals.baseurl %>">
+    <% } %>
     <meta charset="UTF-8">
     <title>Error</title>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
   </head>
   <body>
     <div id="page">
+
+      <%- include('nav-comp'); %>
+
       <h2><%= statusCode; %></h2>
       <h4><%= err.toString(); %></h4>
       <% if (err.stack) { %>
       <%= '<p>' + err.stack.toString() + '</p>'; %>
       <% } %>
+
     </div>
   </body>
 </html>
-
