@@ -452,8 +452,66 @@ describe('server', () => {
                 expect(res2.statusCode).toBe(200);
                 let jbody2 = JSON.parse(body2);
                 expect(jbody2.ok).toBe(true);
-                done();
+                // no reason explicitly passed, so check that reason is default
+                p_db.then(db => {
+                db.collection('tokens', (err, collection) => {
+                  if (err) {
+                    done.fail(err);
+                    return;
+                  }
+                  collection.findOne({token: jbody.token}, (err, res) => {
+                    if (err) {
+                      done.fail(err);
+                      return;
+                    }
+                    expect(res.hist[0].reason).toBe('Created by admin ' + user + ' via admin interface');
+
+                    done();
+                  });
+                });
+              }, done.fail);
             });
+        });
+      }, done.fail);
+    });
+
+    it('creates a token for another user, providing a reason', function (done) {
+      let postData = {
+        "groups": [ '1', '2', '3' ]
+      };
+      let user = 'someuser@domain.com';
+      let targetUser = 'anotheruser@domain.com';
+      let reason = 'test reason';
+      insertUser(p_db, targetUser, postData.groups).then(function() {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/createToken`,
+          headers: {
+            "content-type": 'application/json',
+            "x-remote-user": user
+          },
+          body: JSON.stringify({reason: reason}),
+        }, (err, res, body) => {
+          if (err) {
+            done.fail(err);
+          }
+
+          expect(res.statusCode).toBe(200);
+          let jbody = JSON.parse(body);
+
+          expect(jbody.token).toBeDefined();
+          expect(jbody.user).toBe(targetUser);
+          postData.token = jbody.token;
+
+          // check that reason matches given reason
+          p_db.then(db => {
+            db.collection('tokens', (err, collection) => {
+              collection.findOne({token: jbody.token}, (err, res) => {
+                expect(res.hist[0].reason).toBe(reason);
+
+                done();
+              });
+            });
+          });
         });
       }, done.fail);
     });
