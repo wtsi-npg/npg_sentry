@@ -1,6 +1,7 @@
 CHANGES
 
   - drop official support for node 4
+  - format resource names before are used in acl to remove invalid chars
 
 release 0.4.0
   - add admin pages and endpoints

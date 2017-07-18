@@ -4,7 +4,9 @@
 const ACL = require('acl');
 const MongoClient = require('mongodb').MongoClient;
 
-const configger = require('../lib/configger');
+const configger    = require('../lib/configger');
+const sentry_utils = require('../lib/sentry_utils');
+const constants    = require('../lib/constants');
 
 const optionsList = [
   ['m','mongourl=STRING'  ,'url to connect to mongodb. required.'],
@@ -57,7 +59,8 @@ p_db.then(function(db) {
   if (options.get('type') === 'user') {
     return acl.addUserRoles(options.get('username'), options.get('role'));
   } else if (options.get('type') === 'role') {
-    return acl.allow(options.get('role'), '/admin', options.get('permission'));
+    let resource = sentry_utils.formatResourceNameForACL(constants.ADMIN_RESOURCE);
+    return acl.allow(options.get('role'), resource, options.get('permission'));
   } else {
     return Promise.reject(new Error('Unknown operation type.'));
   }
