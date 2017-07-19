@@ -59,8 +59,12 @@ p_db.then(function(db) {
   if (options.get('type') === 'user') {
     return acl.addUserRoles(options.get('username'), options.get('role'));
   } else if (options.get('type') === 'role') {
-    let resource = sentry_utils.formatResourceNameForACL(constants.ADMIN_RESOURCE);
-    return acl.allow(options.get('role'), resource, options.get('permission'));
+    try {
+      let resource = sentry_utils.formatResourceNameForACL(constants.ADMIN_RESOURCE);
+      return acl.allow(options.get('role'), resource, options.get('permission'));
+    } catch (e) {
+      return Promise.reject(e);
+    }
   } else {
     return Promise.reject(new Error('Unknown operation type.'));
   }
