@@ -3,8 +3,8 @@
   "version": "0.4.0",
   "description": "Auth server for npg",
   "engines": {
-    "node": ">=4.5.0 <7.0.0",
-    "npm": ">=3.10.7"
+    "node": ">=6.10.3",
+    "npm": ">=3.10.10"
   },
   "repository": {
     "type": "git",
