@@ -1,5 +1,7 @@
 CHANGES
 
+  - drop official support for node 4
+
 release 0.4.0
   - add admin pages and endpoints
   - add acl as dep
