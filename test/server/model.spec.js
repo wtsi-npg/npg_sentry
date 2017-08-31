@@ -184,7 +184,7 @@ describe('model', function() {
           done.fail('Second insert should fail but succeeds');
         }, (err) => {
           expect(utils.generateTokenStringPromise.calls.count()).toEqual(2);
-          expect(err.toString()).toMatch(/duplicated token/i);
+          expect(err.toString()).toMatch(/Temporary error, please retry/i);
           let p_collection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
           let p_count = p_collection.then(function(collection) {
