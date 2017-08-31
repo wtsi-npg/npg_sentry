@@ -9,6 +9,7 @@
     "beforeEach": true,
     "afterAll": true,
     "afterEach": true,
-    "fail": true
+    "fail": true,
+    "spyOn": true
   }
 }
