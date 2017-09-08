@@ -1,5 +1,6 @@
 CHANGES
 
+release 0.5.0
   - add ca-file option to access_control_groups perl script to support extra
     CAs for mongo connections
   - drop official support for node 4
