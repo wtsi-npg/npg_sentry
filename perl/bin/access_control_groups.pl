@@ -55,6 +55,8 @@ the dnap_ro iRODS group).
 
 Options:
 
+  --ca-file     Path to file with CA to be used if connecting through ssl. If
+                external CA is needed, don't pass ssl=true as part of db-url
   --db-name     Name and collection to compare old data. No effect unless
                 --db-url is set. [sentry.users]
   --db-url      URL of mongo database to compare lists of users. Users that
@@ -73,6 +75,7 @@ Options:
 
 WOE
 
+my $ca_file;
 my $dbname = 'sentry.users';
 my $dburl;
 my $debug;
@@ -82,7 +85,8 @@ my $userfirst;
 my $verbose;
 my @studies;
 
-GetOptions('db-name=s'               => \$dbname,
+GetOptions('ca-file=s'               => \$ca_file,
+           'db-name=s'               => \$dbname,
            'db-url=s'                => \$dburl,
            'debug'                   => \$debug,
            'eml=s'                   => \$eml,
@@ -151,7 +155,20 @@ sub _dnap_members {
 sub _old_users {
   my @old_users = ();
   if ($dburl && $userfirst) {
-    my $client = MongoDB->connect($dburl);
+    my $client;
+    if ($ca_file) {
+      my $options = {
+        ssl => {
+          'SSL_ca_file' => $ca_file
+        }
+      };
+      $client = MongoDB->connect(
+        $dburl,
+        $options
+      );
+    } else {
+      $client = MongoDB->connect($dburl);
+    }
     my $users_coll = $client->ns($dbname);
 
     ##no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
