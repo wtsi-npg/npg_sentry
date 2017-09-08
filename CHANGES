@@ -1,5 +1,7 @@
 CHANGES
 
+  - add ca-file option to access_control_groups perl script to support extra
+    CAs for mongo connections
   - drop official support for node 4
   - format resource names before they are used in acl to remove invalid chars
   - upgrade body-parser to 1.17.2 from 1.17.1
