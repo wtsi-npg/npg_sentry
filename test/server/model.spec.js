@@ -481,7 +481,7 @@ describe('model', function() {
 
       it('succeeds', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
         let p_userInsertion = p_userCollection.then(function(collection) {
@@ -498,7 +498,7 @@ describe('model', function() {
 
       it('successfully returns false', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
@@ -529,13 +529,13 @@ describe('model', function() {
           expect(reason).toMatch(/validateUser: groups must be an Array/i);
         }));
 
-        ps.push(model.validateUser(['a_group']).then(function() {
+        ps.push(model.validateUser([['a_group']]).then(function() {
           return Promise.reject('Unexpectedly validated users but user is not defined');
         }, function (reason) {
           expect(reason).toMatch(/validateUser: user is not defined/i);
         }));
 
-        ps.push(model.validateUser(['a_group'], 1).then(function() {
+        ps.push(model.validateUser([['a_group']], 1).then(function() {
           return Promise.reject('Unexpectedly validated users but user is not a string');
         }, function (reason) {
           expect(reason).toMatch(/validateUser: user must be a string/i);
@@ -546,7 +546,7 @@ describe('model', function() {
 
       it('fails when user does not exist', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         model.validateUser(reqdGroups, user).then(function() {
           done.fail('Validate user should have failed but succeded');
@@ -559,7 +559,7 @@ describe('model', function() {
 
       it('successfully returns false when groups field is missing', function(done) {
         let user = 'nogroups@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection('users'));
 
@@ -577,7 +577,7 @@ describe('model', function() {
 
       it('successfully returns false when groups field is empty', function(done) {
         let user = 'emptygroups@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection('users'));
 
@@ -599,7 +599,7 @@ describe('model', function() {
       it('succeeds', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_tokenCollection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
@@ -630,7 +630,7 @@ describe('model', function() {
       it('successfully returns false', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_tokenCollection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
@@ -673,13 +673,13 @@ describe('model', function() {
           expect(reason).toMatch(/validateToken: groups must be an Array/i);
         }));
 
-        ps.push(model.validateToken(['a_group']).then(function() {
+        ps.push(model.validateToken([['a_group']]).then(function() {
           return Promise.reject('Unexpectedly validated tokens but token is not defined');
         }, function (reason) {
           expect(reason).toMatch(/validateToken: token is not defined/i);
         }));
 
-        ps.push(model.validateToken(['a_group'], 1).then(function() {
+        ps.push(model.validateToken([['a_group']], 1).then(function() {
           return Promise.reject('Unexpectedly validated tokens but token is not a string');
         }, function (reason) {
           expect(reason).toMatch(/validateToken: token must be a string/i);

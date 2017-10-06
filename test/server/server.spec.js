@@ -87,7 +87,7 @@ describe('server', () => {
     describe('user validating', function() {
 
       it('rejects when validating unknown user', function (done) {
-        let groups = ['1', '2', '3'];
+        let groups = [['1'], ['2'], ['3']];
         insertUser(p_db, 'someuser@domain.com', groups).then( () => {
           request.post({
             url: `http://localhost:${SERVER_PORT}/validateUser`,
@@ -119,7 +119,7 @@ describe('server', () => {
               "x-remote-user": user
             },
             body: JSON.stringify({
-              groups: ['1', '2', '3'],
+              groups: [['1'], ['2'], ['3']],
               user:   user
             })
           }, (err, res, body) => {
@@ -133,8 +133,9 @@ describe('server', () => {
 
       it('ok when validating user with correct groups', function (done) {
         let user   = 'someuser@domain.com';
-        let groups = ['1', '2', '3'];
-        insertUser(p_db, user, groups).then( () => {
+        let user_groups = ['1', '2', '3'];
+        let groups = [['1'], ['2'], ['3']];
+        insertUser(p_db, user, user_groups).then( () => {
           request.post({
             url: `http://localhost:${SERVER_PORT}/validateUser`,
             headers: {
@@ -163,9 +164,9 @@ describe('server', () => {
 
       it('creates a token and lists it', function (done) {
         let token;
-        let groups = ['1', '2', '3'];
+        let user_groups = ['1', '2', '3'];
         let user = 'someuser@domain.com';
-        insertUser(p_db, user, groups).then(function() {
+        insertUser(p_db, user, user_groups).then(function() {
           request.post({
             url: `http://localhost:${SERVER_PORT}/createToken`,
             headers: {
@@ -206,11 +207,12 @@ describe('server', () => {
       });
 
       it('creates a token and validates it', function (done) {
+        let user_groups = ['1', '2', '3'];
         let postData = {
-          "groups": [ '1', '2', '3' ]
+          "groups": [['1'], ['2'], ['3']]
         };
         let user = 'someuser@domain.com';
-        insertUser(p_db, user, postData.groups).then(function() {
+        insertUser(p_db, user, user_groups).then(function() {
           request.post({
             url: `http://localhost:${SERVER_PORT}/createToken`,
             headers: {
@@ -321,9 +323,10 @@ describe('server', () => {
 
       it('tests for a revoked token', (done) => {
         let user   = 'someuser@domain.com';
-        let groups = [ '1', '2' ];
+        let user_groups = ['1', '2'];
+        let groups      = [ ['1'], ['2'] ];
 
-        insertUser(p_db, user, groups).then( () => {
+        insertUser(p_db, user, user_groups).then( () => {
           request.post({
             url: `http://localhost:${SERVER_PORT}/createToken`,
             headers: {
@@ -415,12 +418,13 @@ describe('server', () => {
     });
 
     it('creates a token for another user and validates it', function (done) {
+      let user_groups = ['1', '2', '3'];
       let postData = {
-        "groups": [ '1', '2', '3' ]
+        "groups": [ ['1'], ['2'], ['3'] ]
       };
       let user = 'someuser@domain.com';
       let targetUser = 'anotheruser@domain.com';
-      insertUser(p_db, targetUser, postData.groups).then(function() {
+      insertUser(p_db, targetUser, user_groups).then(function() {
         request.post({
           url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/createToken`,
           headers: {
@@ -476,13 +480,14 @@ describe('server', () => {
     });
 
     it('creates a token for another user, providing a reason', function (done) {
+      let user_groups = ['1', '2', '3'];
       let postData = {
-        "groups": [ '1', '2', '3' ]
+        "groups": [ ['1'], ['2'], ['3'] ]
       };
       let user = 'someuser@domain.com';
       let targetUser = 'anotheruser@domain.com';
       let reason = 'test reason';
-      insertUser(p_db, targetUser, postData.groups).then(function() {
+      insertUser(p_db, targetUser, user_groups).then(function() {
         request.post({
           url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/createToken`,
           headers: {
@@ -520,9 +525,10 @@ describe('server', () => {
       it('succeeds', (done) => {
         let user       = 'someuser@domain.com';
         let targetUser = 'anotheruser@domain.com';
-        let groups     = [ '1', '2' ];
+        let user_groups = ['1', '2'];
+        let groups     = [ ['1'], ['2'] ];
 
-        insertUser(p_db, targetUser, groups).then( () => {
+        insertUser(p_db, targetUser, user_groups).then( () => {
           request.post({
             url: `http://localhost:${SERVER_PORT}/createToken`,
             headers: {
@@ -601,12 +607,13 @@ describe('server', () => {
     });
 
     it("lists another user's tokens", (done) => {
+      let user_groups = ['1', '2', '3'];
       let postData = {
-        "groups": [ '1', '2', '3' ]
+        "groups": [['1'], ['2'], ['3']]
       };
       let user = 'someuser@domain.com';
       let targetUser = 'anotheruser@domain.com';
-      insertUser(p_db, targetUser, postData.groups).then(function() {
+      insertUser(p_db, targetUser, user_groups).then(function() {
         request.post({
           url: `http://localhost:${SERVER_PORT}/admin/user/${targetUser}/createToken`,
           headers: {
