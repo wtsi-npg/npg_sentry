@@ -86,7 +86,7 @@ describe('server', () => {
 
     describe('user validating', function() {
 
-      it('rejects when validating unknown user', function (done) {
+      it('rejects when validating unknown user with no default groups', function (done) {
         let groups = [['1'], ['2'], ['3']];
         insertUser(p_db, 'someuser@domain.com', groups).then( () => {
           request.post({
@@ -99,13 +99,37 @@ describe('server', () => {
               groups: groups,
               user:   'someotheruser@domain.com'
             })
-          }, (err, res) => {
+          }, (err, res, body) => {
             if(err){
               done.fail(err);
             }
-            expect(res.statusCode).not.toBe(200);
+            expect(res.statusCode).toBe(200);
+            let jbody = JSON.parse(body);
+            expect(jbody.ok).toBe(false);
             done();
           });
+        });
+      });
+
+      it('accepts when validating unknown user against default groups', function (done) {
+        request.post({
+          url: `http://localhost:${SERVER_PORT}/validateUser`,
+          headers: {
+            "content-type":  'application/json',
+            "x-remote-user": 'someotheruser@domain.com'
+          },
+          body: JSON.stringify({
+            groups: [['everyone']],
+            user:   'someotheruser@domain.com' // Not in db
+          })
+        }, (err, res, body) => {
+          if(err){
+            done.fail(err);
+          }
+          expect(res.statusCode).toBe(200);
+          let jbody = JSON.parse(body);
+          expect(jbody.ok).toBe(true);
+          done();
         });
       });
 
