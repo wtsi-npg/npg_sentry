@@ -12,6 +12,12 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
 
   QUnit.config.autostart = false;
 
+  var now = new Date();
+  var today_plus_50 = new Date();
+  today_plus_50.setDate(now.getDate() + 50);
+  var today_minus_50 = new Date();
+  today_minus_50.setDate(now.getDate() - 50);
+
   function runTest() {
 
     QUnit.test('Can toggle token creation form visibility', function(assert) {
@@ -34,18 +40,26 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
     });
 
     QUnit.test('Data is loaded into table on page load', function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       var oldAjaxGet = $.get;
       var data = [
         {
           token: 'abc',
           status: 'valid',
+          expiryTime: today_plus_50.toString(),
           user: 'user@example.com',
         },
         {
           token: 'xyz',
           status: 'revoked',
+          expiryTime: today_plus_50.toString(),
+          user: 'ruser@example.com',
+        },
+        {
+          token: 'wxy',
+          status: 'valid',
+          expiryTime: today_minus_50.toString(),
           user: 'ruser@example.com',
         },
       ];
@@ -56,11 +70,12 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         opts.success(data, 'success');
 
         var tokenTableRows = $('#token-table').children('tbody').children('tr');
-        assert.strictEqual(tokenTableRows.length, 3,
+        assert.strictEqual(tokenTableRows.length, 4,
           'Table is not empty after request to /listTokens'
         );
         assert.notOk(tokenTableRows.filter('tr:nth-child(2)').hasClass('disabled-row'));
         assert.ok(tokenTableRows.filter('tr:nth-child(3)').hasClass('disabled-row'));
+        assert.ok(tokenTableRows.filter('tr:nth-child(4)').hasClass('disabled-row'));
       };
 
       assert.strictEqual(

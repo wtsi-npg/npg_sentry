@@ -1,6 +1,7 @@
 {
   "ERRORS": {
-    "UNEXPECTED_NUM_DOCS": "Unexpected number of documents containing this token",
+    "MULTIPLE_DOCS_ERROR": "Found multiple documents in cursor where zero or one were expected",
+    "UNEXPECTED_NUM_DOCS": "Number of documents is different from one",
     "USER_NOT_TOKEN_OWNER": "This user does not own this token"
   },
   "WEB_TOKEN": {

@@ -33,8 +33,11 @@ define(['jquery'], function($) {
   }
 
   function generateTokenRow($row, values) {
-    var valid = values.status === 'valid';
-    if (!valid) {
+    var valid    = values.status === 'valid';
+    var exp_date = new Date(values.expiryTime);
+    var expired  = new Date() > exp_date;
+
+    if (!valid || expired) {
       $row.addClass('disabled-row');
     }
 
@@ -43,7 +46,7 @@ define(['jquery'], function($) {
 
     var $cpBtnCell = $('<td></td>');
     var $cpBtn = $('<button></button>');
-    if (valid) {
+    if (valid && !expired) {
       $cpBtn.addClass('cp-btn cp-btn-active');
     } else {
       $cpBtn.addClass('cp-btn cp-btn-disabled');
@@ -53,6 +56,7 @@ define(['jquery'], function($) {
     $row.append($cpBtnCell);
 
     addValueToRow($row, values.status, 'token-status');
+    addValueToRow($row, exp_date.toString(), 'token-expiry');
     if (valid) {
       addValueToRow($row, 'Revoke', 'revoke-link')
         .on('click', function(e) {

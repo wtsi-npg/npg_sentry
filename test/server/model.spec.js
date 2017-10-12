@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 const fse = require('fs-extra');
 const tmp = require('tmp');
 
-let BASE_PORT  = 9000;
+let BASE_PORT  = 15000;
 let PORT_RANGE = 200;
 let PORT = Math.floor(Math.random() * PORT_RANGE) + BASE_PORT;
 
@@ -481,7 +481,7 @@ describe('model', function() {
 
       it('succeeds', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
         let p_userInsertion = p_userCollection.then(function(collection) {
@@ -498,7 +498,7 @@ describe('model', function() {
 
       it('successfully returns false', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
 
@@ -520,22 +520,22 @@ describe('model', function() {
         ps.push(model.validateUser().then(function() {
           return Promise.reject('Unexpectedly validated users but groups is not defined');
         }, function (reason) {
-          expect(reason).toMatch(/validateUser: groups is not defined/i);
+          expect(reason).toMatch(/validateUser: resourceGroups is not defined/i);
         }));
 
         ps.push(model.validateUser(1).then(function() {
           return Promise.reject('Unexpectedly validated users but groups is not an Array');
         }, function (reason) {
-          expect(reason).toMatch(/validateUser: groups must be an Array/i);
+          expect(reason).toMatch(/validateUser: resourceGroups must be an Array/i);
         }));
 
-        ps.push(model.validateUser(['a_group']).then(function() {
+        ps.push(model.validateUser([['a_group']]).then(function() {
           return Promise.reject('Unexpectedly validated users but user is not defined');
         }, function (reason) {
           expect(reason).toMatch(/validateUser: user is not defined/i);
         }));
 
-        ps.push(model.validateUser(['a_group'], 1).then(function() {
+        ps.push(model.validateUser([['a_group']], 1).then(function() {
           return Promise.reject('Unexpectedly validated users but user is not a string');
         }, function (reason) {
           expect(reason).toMatch(/validateUser: user must be a string/i);
@@ -544,22 +544,46 @@ describe('model', function() {
         Promise.all(ps).then(done, done.fail);
       });
 
+      it('fails when user is multiple times in database', function (done) {
+        let user = 'usermultiple@example.com';
+
+        let p_userCollection = p_db.then(getCollection(constants.COLLECTION_USERS));
+
+        let p_userInsertion = p_userCollection.then(function(collection) {
+          return collection.insert([
+            {user, groups: ['1', '2', '3']},
+            {user, groups: ['4', '5', '6']},
+          ]);
+        });
+
+        p_userInsertion.then(function() {
+          let reqdGroups = [['1'], ['5']];
+          model.validateUser(reqdGroups, user).then(function() {
+            done.fail('Validate user should have failed but succeded');
+          }, function(reason) {
+            expect(reason instanceof dbConn.DbError).toBe(true);
+            console.log(constants.MULTIPLE_DOCS_ERROR);
+            expect(reason.message).toBe(constants.MULTIPLE_DOCS_ERROR);
+            done();
+          });
+        }, done.fail);
+      });
+
       it('fails when user does not exist', function(done) {
         let user = 'user@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
-        model.validateUser(reqdGroups, user).then(function() {
-          done.fail('Validate user should have failed but succeded');
-        }, function(reason) {
-          expect(reason instanceof dbConn.DbError).toBe(true);
-          expect(reason.message).toBe(constants.UNEXPECTED_NUM_DOCS);
+        model.validateUser(reqdGroups, user).then(function(authorized) {
+          expect(authorized).toBe(false);
           done();
+        }, function(reason) {
+          done.fail(reason);
         });
       });
 
       it('successfully returns false when groups field is missing', function(done) {
         let user = 'nogroups@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection('users'));
 
@@ -577,7 +601,7 @@ describe('model', function() {
 
       it('successfully returns false when groups field is empty', function(done) {
         let user = 'emptygroups@example.com';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_userCollection = p_db.then(getCollection('users'));
 
@@ -599,7 +623,7 @@ describe('model', function() {
       it('succeeds', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_tokenCollection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
@@ -630,7 +654,7 @@ describe('model', function() {
       it('successfully returns false', function(done) {
         let user = 'user@example.com';
         let token = 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD';
-        let reqdGroups = ['1', '5'];
+        let reqdGroups = [['1'], ['5']];
 
         let p_tokenCollection = p_db.then(getCollection(constants.COLLECTION_TOKENS));
 
@@ -673,13 +697,13 @@ describe('model', function() {
           expect(reason).toMatch(/validateToken: groups must be an Array/i);
         }));
 
-        ps.push(model.validateToken(['a_group']).then(function() {
+        ps.push(model.validateToken([['a_group']]).then(function() {
           return Promise.reject('Unexpectedly validated tokens but token is not defined');
         }, function (reason) {
           expect(reason).toMatch(/validateToken: token is not defined/i);
         }));
 
-        ps.push(model.validateToken(['a_group'], 1).then(function() {
+        ps.push(model.validateToken([['a_group']], 1).then(function() {
           return Promise.reject('Unexpectedly validated tokens but token is not a string');
         }, function (reason) {
           expect(reason).toMatch(/validateToken: token must be a string/i);
