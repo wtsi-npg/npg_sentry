@@ -1,5 +1,6 @@
 CHANGES
 
+release 0.6.0
   - access groups are an array of arrays/single items
   - support for users which are not in user collection
   - upgrade bower to 1.8.2 from 1.8.0
