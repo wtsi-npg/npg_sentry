@@ -1,11 +1,13 @@
 CHANGES
 
+release 0.6.0
   - access groups are an array of arrays/single items
   - support for users which are not in user collection
   - upgrade bower to 1.8.2 from 1.8.0
     fix deprecated repository
   - show expiry date of tokens in ui
   - testing node 6.11.4 in travis
+  - using bower@1.8.2 for travis
 
 release 0.5.0
   - add ca-file option to access_control_groups perl script to support extra
