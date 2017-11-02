@@ -9,6 +9,36 @@ define(['jquery'], function($) {
     _showMsg(content, 'success-msg');
   }
 
+  /**
+   * Process a location so the url for the path up to the last '/' is returned.
+   * Using this function to produce urls for ajax requests. For some unknown
+   * reason relative urls can not be build properly while setting 'url' property
+   * of ajax requests.
+   *
+   * @example
+   * window.location = 'https://sentry.server/app_root/some_path/mainpage.html';
+   * processLocation(window.location);
+   * > 'https://sentry.server/app_root/somepath/'
+   * window.location = 'https://sentry.server/app_root/#';
+   * processLocation(window.location);
+   * > 'https://sentry.server/app_root/'
+   * window.location = 'https://sentry.server/app_root/some_path/#';
+   * processLocation(window.location);
+   * > 'https://sentry.server/app_root/somepath/'
+   *
+   * @param  {Location} location object to use as base to generate the new url
+   * @return {string}            new url
+   */
+  function processLocation(location) {
+    if(!location.origin || !location.pathname) {
+      throw 'location must implement origin and pathname';
+    }
+
+    return location.origin + location.pathname.substring(
+      0, location.pathname.lastIndexOf('/') + 1
+    );
+  }
+
   function _showMsg(content, cls) {
     var $div = $('<div></div>');
     $div.addClass('msg-div');
@@ -77,8 +107,10 @@ define(['jquery'], function($) {
       $tr = generateTokenRow($tr, data);
     };
 
+    var app_url = processLocation(window.location);
+
     $.post({
-      url: window.location + 'revokeToken',
+      url: app_url + 'revokeToken',
       data: JSON.stringify({token: token}),
       success: revokeSuccess,
       contentType: 'application/json',
@@ -110,11 +142,12 @@ define(['jquery'], function($) {
 
 
   return {
-    addValueToRow: addValueToRow,
+    addValueToRow:    addValueToRow,
     generateTokenRow: generateTokenRow,
-    revokeToken: revokeToken,
-    parseQuery: parseQuery,
-    showErrorMsg: showErrorMsg,
-    showSuccessMsg: showSuccessMsg,
+    revokeToken:      revokeToken,
+    parseQuery:       parseQuery,
+    processLocation:  processLocation,
+    showErrorMsg:     showErrorMsg,
+    showSuccessMsg:   showSuccessMsg,
   };
 });
