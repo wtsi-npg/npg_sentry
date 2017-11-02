@@ -1,6 +1,6 @@
 {
   "name": "npg_sentry",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "description": "Auth server for npg",
   "engines": {
     "node": ">=6.10.3",
