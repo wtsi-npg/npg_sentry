@@ -23,13 +23,16 @@ requirejs(['jquery', 'sentrylib'], function($, sentrylib) {
         url: app_url + 'addAdmin',
         contentType: 'application/json',
         data: '{"user":"' + uname + '"}',
-        error: function(jqXHR) {
+        error: function() {
           sentrylib.showErrorMsg(
-            'Failed to add user as admin: ' + jqXHR.status + ' : ' + jqXHR.statusText);
+            'Failed to assign admin role for user: "' + uname + '"'
+          );
         },
         method: 'PUT',
         success: function() {
-          sentrylib.showSuccessMsg('Admin added!');
+          sentrylib.showSuccessMsg(
+            'Admin role has been added for user: "' + uname + '"'
+          );
         },
       });
     });
@@ -40,13 +43,16 @@ requirejs(['jquery', 'sentrylib'], function($, sentrylib) {
         url: app_url + 'removeAdmin',
         contentType: 'application/json',
         data: '{"user":"' + uname + '"}',
-        error: function(jqXHR) {
+        error: function() {
           sentrylib.showErrorMsg(
-            'Failed to remove user as admin: ' + jqXHR.status + ' : ' + jqXHR.statusText);
+            'Failed to remove admin role for user: "' + uname + '"'
+          );
         },
         method: 'PUT',
         success: function() {
-          sentrylib.showSuccessMsg('Admin removed!');
+          sentrylib.showSuccessMsg(
+            'Admin role has been remove for user: "' + uname + '"'
+          );
         },
       });
     });
