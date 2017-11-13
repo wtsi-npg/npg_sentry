@@ -1,5 +1,12 @@
 CHANGES
 
+release 0.6.1
+  - error/info messages to include user acted upon for administrating
+    admins actions
+  - replace use of plain window.location with function which uses origin +
+    pathname to produce urls for ajax calls
+  - move engine to node 6.11.4 in package.json
+
 release 0.6.0
   - access groups are an array of arrays/single items
   - support for users which are not in user collection

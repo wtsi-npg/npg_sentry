@@ -39,6 +39,51 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         'Click \'X\' hides token creation menu');
     });
 
+    QUnit.test('processLocation functionality', function(assert) {
+      assert.expect(16);
+
+      assert.strictEqual(typeof sentrylib.processLocation, 'function',
+        'processLocation is defined'
+      );
+
+      assert.throws(function() { sentrylib.processLocation('http//'); },
+        /implement origin and pathname/,
+        'throws with missing origin and pathname'
+      );
+      assert.throws(function() {
+          var parameter = {};
+          parameter.origin = function(){};
+          sentrylib.processLocation(parameter);
+        }, /implement origin and pathname/,
+        'throws with missing location'
+      );
+      assert.throws(function() {
+          var parameter = {};
+          parameter.pathname = function(){};
+          sentrylib.processLocation(parameter);
+        }, /implement origin and pathname/,
+        'throws with missing origin'
+      );
+
+      var origin = 'https://someserver:port';
+      var pathnames = [
+        '/something/#',
+        '/something/index.html#',
+        '/something/index.html',
+        '/something/index.html?key=value'
+      ];
+      pathnames.forEach(function(pathname) {
+        var proxyLocation = {
+          origin:   origin,
+          pathname: pathname
+        };
+        var newUrl = sentrylib.processLocation(proxyLocation);
+        assert.ok(/\/$/.test(newUrl), 'new url ends in /');
+        assert.ok(/^https:\/\//.test(newUrl), 'new url starts with https');
+        assert.ok(/someserver:port/.test(newUrl), 'new url has server and port');
+      });
+    });
+
     QUnit.test('Data is loaded into table on page load', function(assert) {
       assert.expect(6);
 
@@ -65,8 +110,7 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
       ];
 
       $.get = function mockAjax(opts) {
-        assert.strictEqual(opts.url, window.location + 'listTokens',
-          'Makes request to /listTokens');
+        assert.ok(/\/listTokens$/.test(opts.url), 'Makes request to /listTokens');
         opts.success(data, 'success');
 
         var tokenTableRows = $('#token-table').children('tbody').children('tr');
@@ -178,15 +222,14 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         },
       ];
       $.get = function mockAjaxGet(opts) {
-        assert.strictEqual(opts.url, window.location + 'listTokens',
-          'Makes request to /listTokens');
+        assert.ok(/\/listTokens$/.test(opts.url), 'Makes request to /listTokens');
         opts.success(data, 'success');
       };
       setup.setupPage();
 
       var oldAjaxPost = $.post;
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, window.location + 'revokeToken',
+        assert.ok(/\/revokeToken$/.test(opts.url),
           'Makes POST request to /revokeToken');
         assert.strictEqual(opts.data, JSON.stringify({token: 'abc'}),
           'POST request data is JSON containing token to revoke');
@@ -219,7 +262,7 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         opts.success([], 'success');
       };
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, window.location + 'createToken',
+        assert.ok(/\/createToken$/.test(opts.url),
           'Makes POST request to /createToken');
         assert.strictEqual(
           $('#token-table').children('tbody').children('tr').length, 1,
@@ -257,7 +300,7 @@ requirejs(['qunit', 'jquery', 'setup', 'sentrylib'], function(QUnit, $, setup, s
         opts.success([], 'success');
       };
       $.post = function mockAjaxPost(opts) {
-        assert.strictEqual(opts.url, window.location + 'createToken',
+        assert.ok(/\/createToken$/.test(opts.url),
           'Makes POST request to /createToken');
         assert.strictEqual(opts.data, '{"reason":"test reason"}',
           'A reason is given');
