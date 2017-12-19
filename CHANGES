@@ -1,5 +1,7 @@
 CHANGES
 
+  - require node.js v6.12.2
+
 release 0.6.1
   - error/info messages to include user acted upon for administrating
     admins actions
