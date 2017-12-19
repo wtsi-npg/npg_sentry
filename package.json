@@ -49,7 +49,7 @@
     "express": "4.15.4",
     "helmet": "3.8.1",
     "log4js": "1.1.1",
-    "moment": "2.18.1",
+    "moment": "2.20.1",
     "mongodb": "2.2.31",
     "node-getopt": "0.2.3"
   },
