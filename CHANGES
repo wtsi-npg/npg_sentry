@@ -1,5 +1,9 @@
 CHANGES
 
+release 0.6.2
+  - upgrade moment to 2.20.1 from 2.18.1
+  - require node.js v6.12.2
+
 release 0.6.1
   - error/info messages to include user acted upon for administrating
     admins actions
