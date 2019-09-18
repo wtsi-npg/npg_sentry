@@ -1,5 +1,8 @@
 CHANGES
 
+release 0.6.3
+  - update bower to 1.8.8 from 1.8.2 (security update)
+
 release 0.6.2
   - upgrade moment to 2.20.1 from 2.18.1
   - require node.js v6.12.2

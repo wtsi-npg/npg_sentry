@@ -1,6 +1,6 @@
 {
   "name": "npg_sentry",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Auth server for npg",
   "engines": {
     "node": ">=6.12.2",
@@ -49,7 +49,7 @@
   "dependencies": {
     "acl": "0.4.10",
     "body-parser": "1.17.2",
-    "bower": "1.8.2",
+    "bower": "1.8.8",
     "config-chain": "1.1.x",
     "ejs": "2.5.7",
     "express": "4.15.4",
