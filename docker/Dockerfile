@@ -25,7 +25,7 @@ RUN git clone https://github.com/wtsi-npg/npg_sentry \
 RUN apt-get remove -qq $APT_DEPENDENCIES \
   && apt-get autoremove --purge -qq \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
   && rm /root/.bowerrc
 
 WORKDIR /npg_sentry
