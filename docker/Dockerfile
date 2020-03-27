@@ -17,7 +17,7 @@ RUN apt-get update -qq \
 
 RUN git clone https://github.com/wtsi-npg/npg_sentry \
   && cd npg_sentry \
-  # Make sure that Bower can execute it's install
+  # Make sure that Bower can execute it's install, root is restricted by default
   && echo '{ "allow_root": true }' >> /root/.bowerrc \
   && npm --unsafe-perm true install
 
@@ -26,6 +26,7 @@ RUN apt-get remove -qq $APT_DEPENDENCIES \
   && apt-get autoremove --purge -qq \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+  && rm /root/.bowerrc
 
 WORKDIR /npg_sentry
 
