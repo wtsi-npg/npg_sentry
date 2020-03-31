@@ -70,10 +70,10 @@ An example configuration json file would be structured as follows:
 }
 ```
 
-#### Adding to the mongoDB using the given script
+#### Adding administrator role to users in the mongoDB using the given script.
 
 Users, their roles, and their permissions can all be added using the given script in `scripts/create-admin.js`.
-If you do not define a role, it defaults to `administrator`.
+If you do not define a role, it defaults to `administrator`. Very likely needed to seed users with administrator role the first time the application is used.
 ```
 $ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "role" --permission "post"
 $ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "role" --permission "view"
