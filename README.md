@@ -17,6 +17,13 @@ Using npm:
 ```
 $ npm start
 ```
+You can also run it using npm while passing values through arguments or through a configuration file.
+```
+$ npm start -- --port 8000 --mongourl "mongodb://localhost:27017/acl" --loglevel "warn" --no-ssl "true"
+$ # Alternatively:
+$ npm start -- --configfile=./config_file.json
+```
+
 OR use pm2 to run server as a daemonised cluster:
 
 ```
@@ -51,6 +58,27 @@ option       | .
  loglevel    | logging output level
  configfile  | configuration json file
  no-ssl      | run server on http (see below)
+
+An example configuration json file would be structured as follows:
+
+```json
+{
+  "port":"8000",
+  "mongourl":"mongodb://lochalhost:27017/acl",
+  "loglevel":"debug",
+  "no-ssl":"true"
+}
+```
+
+#### Adding to the mongoDB using the given script
+
+Users, their roles, and their permissions can all be added using the given script in `scripts/create-admin.js`.
+If you do not define a role, it defaults to `administrator`.
+```
+$ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "role" --permission "post"
+$ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "role" --permission "view"
+$ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "user" --username "email@address.co.uk"
+```
 
 #### SSL
 
