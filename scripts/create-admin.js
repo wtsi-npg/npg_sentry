@@ -20,7 +20,21 @@ const optionsList = [
 ];
 
 const defaultOptions = {
-  role: 'administrator'
+  role: 'administrator',
+  mongoopt: {
+    db: {
+      numberofRetries: 5
+    },
+    server: {
+      auto_reconnect: true,
+      poolSize:       40,
+      socketOptions:  {
+        connectTimeoutMS: 5000
+      }
+    },
+    replSet: {},
+    mongos:  {}
+  }
 };
 
 function generateConfigs() {
@@ -52,7 +66,7 @@ if (!isValidInvocation()) {
 }
 
 let acl;
-let p_db = MongoClient.connect(options.get('mongourl'))
+let p_db = MongoClient.connect(options.get('mongourl'), options.get('mongoopt'))
 
 p_db.then(function(db) {
   acl = new ACL(new ACL.mongodbBackend(db, 'sentry_acl'));
