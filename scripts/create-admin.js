@@ -19,6 +19,24 @@ const optionsList = [
   ['h','help'             ,'show this help'],
 ];
 
+// If you are using a database that uses replica sets and has ssl enabled,
+// you will have to set the options here to enable a connection.
+// There is a commented example below from defaultOptions. Note that it is all
+// under the `server` key.
+
+/*
+    server: {
+      auto_reconnect: true,
+      poolSize:       40,
+      socketOptions:  {
+        connectTimeoutMS: 5000
+      },
+      replicaSet:"replica_set_name",
+      ssl:true,
+      sslValidate:false
+    },
+*/
+
 const defaultOptions = {
   role: 'administrator',
   mongoopt: {

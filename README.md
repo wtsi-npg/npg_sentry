@@ -80,6 +80,18 @@ $ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "rol
 $ ./scripts/create-admin.js --mongourl=mongodb://localhost:27017/acl --type "user" --username "email@address.co.uk"
 ```
 
+#### Adding a user to a specific group ID
+
+To let a user access a file that is assigned to a specific group ID, such as "900000", you have to add it to the sentry DB manually. Add this to the `users` collection.
+```
+db.users.insertOne({"user":"email@address.co.uk", "groups":["900000"]})
+```
+
+#### Running create-admin script on a DB with replica sets or SSL enabled
+
+There is currently no options file you can pass through into the create-admins script, and so you will have to edit the mongodb connection options manually inside the file to be able to connect to a DB with SSL or replica sets enabled.
+A comment block inside the script explains this in more detail.
+
 #### SSL
 
 Sentry will, by default, run on https. This requires the following options to be set:
