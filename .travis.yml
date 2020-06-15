@@ -3,6 +3,7 @@ language: node_js
 node_js:
   - "6.12.2"
   - "6"
+  - "10.21.0"
 
 env:
   global:

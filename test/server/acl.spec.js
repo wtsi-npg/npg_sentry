@@ -50,6 +50,7 @@ describe('acls', () => {
     beforeAll(function(done) {
       decache('../../npg_sentry.js');
       config.provide(() => {
+        console.log('Something 1');
         return {
           mongourl: `mongodb://localhost:${DB_PORT}/test`,
           port: SERVER_PORT,

@@ -62,6 +62,7 @@ describe('server', () => {
     beforeAll(function(done) {
       decache('../../lib/model');
       config.provide(() => {
+        console.log('Something 2');
         return {
           mongourl: `mongodb://localhost:${DB_PORT}/test`,
           port: SERVER_PORT,

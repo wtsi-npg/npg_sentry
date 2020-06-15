@@ -27,7 +27,7 @@ describe('model', function() {
 
   beforeAll(function(done) {
     // setup a mongo instance
-    config.provide(() => {return {mongourl: `mongodb://localhost:${PORT}/test`};});
+    config.provide(() => {console.log('Something 3'); return {mongourl: `mongodb://localhost:${PORT}/test`};});
     model = require('../../lib/model');
     dbConn = require('../../lib/db_conn');
     tmpobj = tmp.dirSync({prefix: 'npg_sentry_test_'});
@@ -63,7 +63,7 @@ describe('model', function() {
     beforeAll(function() {
       decache('../../lib/model');
       decache('../../lib/db_conn');
-      config.provide(() => {return {mongourl: `mongodb://invalid:${PORT}/test`};});
+      config.provide(() => {console.log('Something 4'); return {mongourl: `mongodb://invalid:${PORT}/test`};});
       model = require('../../lib/model');
       dbConn = require('../../lib/db_conn');
     });
