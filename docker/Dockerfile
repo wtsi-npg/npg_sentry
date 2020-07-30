@@ -15,7 +15,7 @@ RUN apt-get update -qq \
   && rm "node-v${NODE_VERSION}-linux-x64.tar.xz" \
   && npm update -g npm
 
-RUN git clone https://github.com/wtsi-npg/npg_sentry \
+RUN git clone https://github.com/grishah/npg_sentry --branch mongo_opt \
   && cd npg_sentry \
   # Make sure that Bower can execute it's install, root is restricted by default
   && echo '{ "allow_root": true }' >> /root/.bowerrc \
